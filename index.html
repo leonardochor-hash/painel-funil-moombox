@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Funil de Captação — Moombox</title>
+<style>
+:root{
+  --font-anthropic-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-anthropic-serif: Georgia, "Times New Roman", serif;
+  --color-fg:#1f1e1c; --color-fg-muted:#6b6a65; --color-bg:#faf9f5; --color-panel:#ffffff; --color-border-line:#e5e2d9;
+  --color-ok:#2f7d4a; --color-bad:#b5382c; --color-warn:#b06d0f;
+  --cds-gap-xs:4px; --cds-gap-sm:10px; --cds-gap-lg:20px; --cds-pad-lg:18px; --cds-pad-md:12px; --cds-radius:10px;
+  --cds-font-size-title:2rem; --cds-font-size-heading:1.1rem; --cds-font-size-body:.9rem; --cds-font-size-caption:.78rem; --cds-font-weight-medium:600;
+  --cds-surface-popover:#fff; --cds-border:#d8d4c8; --cds-shadow-popover:0 4px 14px rgba(0,0,0,.12);
+  --cds-text-secondary:#6b6a65; --cds-chart-axis:#d8d4c8; --cds-chart-grid:#eeebe3;
+}
+@media (prefers-color-scheme: dark){:root{
+  --color-fg:#ecebe6; --color-fg-muted:#a3a19a; --color-bg:#1c1b19; --color-panel:#262522; --color-border-line:#3a3833;
+  --color-ok:#6cc08b; --color-bad:#ec7a6c; --color-warn:#e3a24a;
+  --cds-surface-popover:#2e2d2a; --cds-border:#45433d; --cds-text-secondary:#a3a19a; --cds-chart-axis:#45433d; --cds-chart-grid:#302f2b;
+}}
+body{margin:0;background:var(--color-bg);color:var(--color-fg)}
+#dash-root{max-width:1400px;margin:0 auto;padding:24px 16px 60px}
+#login{position:fixed;inset:0;background:var(--color-bg);display:grid;place-items:center;z-index:10;font-family:var(--font-anthropic-sans)}
+#login form{display:grid;gap:10px;width:min(300px,90vw);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:12px;padding:24px}
+#login h2{margin:0 0 6px;font-family:var(--font-anthropic-serif);font-weight:400}
+#login input,#login button{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg)}
+#login button{background:var(--color-fg);color:var(--color-bg);cursor:pointer;border:0}
+#login .erro{color:var(--color-bad);margin:0;font-size:.85rem}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="/dash.js"></script>
+</head>
+<body>
+<div id="dash-root">
+<style>
+.mb{font-family:var(--font-anthropic-sans);color:var(--color-fg);display:grid;gap:var(--cds-gap-lg)}
+.mb h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0}
+.mb h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0 0 var(--cds-gap-xs)}
+.mb .eyebrow{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);text-transform:uppercase;letter-spacing:.06em}
+.mb .lead{margin:var(--cds-gap-xs) 0 0;color:var(--color-fg-muted);max-width:75ch}
+.mb .lead b{color:var(--color-fg);font-weight:var(--cds-font-weight-medium)}
+.mb .sub{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:0 0 var(--cds-gap-sm)}
+.mb .filtros{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm);align-items:center}
+.mb .seg{display:inline-flex;border:1px solid var(--color-border-line);border-radius:var(--cds-radius);overflow:hidden;background:var(--color-panel)}
+.mb .seg button{font:inherit;font-size:var(--cds-font-size-caption);border:0;background:transparent;color:var(--color-fg-muted);padding:6px 12px;cursor:pointer}
+.mb .seg button[aria-pressed=true]{background:var(--color-fg);color:var(--color-bg)}
+.mb .datas{display:inline-flex;gap:6px;align-items:center;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:3px 8px;background:var(--color-panel)}
+.mb .datas input{font:inherit;color:var(--color-fg);background:transparent;border:0}
+.mb .card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);min-width:0}
+.mb .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--cds-gap-sm)}
+.mb .kpi{display:grid;gap:2px;align-content:start}
+.mb .kpi .lbl{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.mb .kpi .val{font-family:var(--font-anthropic-serif);font-weight:400;font-size:1.8rem;font-variant-numeric:tabular-nums;line-height:1.15}
+.mb .kpi .note{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);font-variant-numeric:tabular-nums}
+.mb .up{color:var(--color-ok)} .mb .down{color:var(--color-bad)}
+.mb .tbl{overflow-x:auto}
+.mb table{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-body);font-variant-numeric:tabular-nums}
+.mb th{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);font-weight:var(--cds-font-weight-medium);text-align:right;padding:6px 8px;border-bottom:1px solid var(--color-border-line);white-space:nowrap}
+.mb td{padding:7px 8px;border-bottom:1px solid var(--color-border-line);text-align:right;white-space:nowrap}
+.mb th:first-child,.mb td:first-child{text-align:left}
+.mb td.wrap{white-space:normal;min-width:160px;text-align:left}
+.mb .muted{color:var(--color-fg-muted)}
+.mb .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:var(--cds-font-size-caption);border:1px solid var(--color-border-line)}
+.mb .pill.bad{color:var(--color-bad);border-color:var(--color-bad)}
+.mb .pill.warn{color:var(--color-warn);border-color:var(--color-warn)}
+.mb .pill.ok{color:var(--color-ok);border-color:var(--color-ok)}
+.mb .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--cds-gap-lg)}
+.mb .chartbox{position:relative;min-height:240px}
+.mb .tip{position:absolute;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);box-shadow:var(--cds-shadow-popover);border-radius:var(--cds-radius);padding:6px 9px;font-size:var(--cds-font-size-caption);white-space:nowrap;z-index:2}
+.mb .legend{display:flex;gap:14px;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin-bottom:6px;flex-wrap:wrap}
+.mb .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.mb .axis text{fill:var(--cds-text-secondary);font-size:var(--cds-font-size-caption)}
+.mb .axis path,.mb .axis line{stroke:var(--cds-chart-axis)}
+.mb .aviso{font-size:var(--cds-font-size-caption);border-left:3px solid var(--color-warn);padding:6px 10px;margin:0 0 var(--cds-gap-sm);color:var(--color-fg-muted)}
+.mb details{font-size:var(--cds-font-size-body)}
+.mb details li{margin-bottom:4px}
+.mb td.best{color:var(--color-ok);font-weight:600} .mb td.worst{color:var(--color-bad)}
+.mb .fichas{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--cds-gap-sm);margin-top:var(--cds-gap-sm)}
+.mb .ficha{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md, 12px);display:grid;gap:8px;align-content:start;min-width:0}
+.mb .ficha h3{font-size:var(--cds-font-size-body);font-weight:var(--cds-font-weight-medium);margin:0;word-break:break-word}
+.mb .ficha .meta{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.mb .ficha .nums{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
+.mb .ficha .nums b{font-size:var(--cds-font-size-body)}
+.mb .ficha dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:3px 10px;font-size:var(--cds-font-size-caption)}
+.mb .ficha dt{color:var(--color-fg-muted)} .mb .ficha dd{margin:0;word-break:break-word}
+</style>
+
+<div class='mb'>
+  <header id='topo'>
+    <div class='eyebrow'>Moombox · Captação de marcas · <span data-draw='periodo-txt'>—</span></div>
+    <h1>Funil de Captação</h1>
+    <p class='lead' id='resumo'>Perfil <b data-draw='t-perfil'>—</b>: no período entraram <b data-draw='t-leads'>—</b> leads, <b data-draw='t-taxa'>—</b> chegaram a “Aprovada” ou além e <b data-draw='t-expo'>—</b> já viraram expositoras. Por perfil: Moombox <b data-draw='t-moo'>—</b> · Julia <b data-draw='t-jul'>—</b>.</p>
+  </header>
+
+  <div class='filtros' id='filtros'>
+    <div class='seg' role='group' aria-label='Período'><button type='button' class='mb-per' data-v='ontem'>Ontem</button><button type='button' class='mb-per' data-v='7'>7 dias</button><button type='button' class='mb-per' data-v='30'>30 dias</button><button type='button' class='mb-per' data-v='90'>90 dias</button></div>
+    <div class='datas'><label for='f-de'>De</label><input type='date' id='f-de' class='mb-date' min='2025-01-01' max='2030-12-31'><label for='f-ate'>até</label><input type='date' id='f-ate' class='mb-date' min='2025-01-01' max='2030-12-31'></div>
+    <div class='seg' role='group' aria-label='Perfil de origem'><button type='button' class='mb-perfil' data-v='todos'>Todos</button><button type='button' class='mb-perfil' data-v='moombox'>Moombox</button><button type='button' class='mb-perfil' data-v='julia'>Julia</button></div>
+  </div>
+
+  <section class='kpis' id='indicadores'>
+    <div class='card kpi' id='k-leads'><span class='lbl'>Leads</span><span class='val' data-draw='k-leads'>—</span><span class='note'><span data-draw='k-var-leads'>—</span> vs. período anterior (<span data-draw='k-ant'>—</span>)</span></div>
+    <div class='card kpi' id='k-aprov'><span class='lbl'>Aprovadas ou além</span><span class='val' data-draw='k-aprov'>—</span><span class='note'><span data-draw='k-taxa'>—</span> dos leads</span></div>
+    <div class='card kpi' id='k-opor'><span class='lbl'>Oportunidades ou além</span><span class='val' data-draw='k-opor'>—</span><span class='note'>status 3 em diante</span></div>
+    <div class='card kpi' id='k-expo'><span class='lbl'>Viraram expositoras</span><span class='val' data-draw='k-expo'>—</span><span class='note'>dos leads que entraram no período</span></div>
+  </section>
+
+  <section class='card' id='custos'>
+    <h2>Custos de mídia — contas Moombox Ads + Julia</h2>
+    <p class='sub'>Segue o filtro de perfil. Leads atribuídos = leads de canais pagos (formulário Meta, landing page, WhatsApp de anúncio) do perfil escolhido.</p>
+    <div class='kpis'>
+      <div class='kpi' id='c-gasto'><span class='lbl'>Investido</span><span class='val' data-draw='c-gasto'>—</span><span class='note'><span data-draw='c-var-gasto'>—</span> vs. anterior</span></div>
+      <div class='kpi' id='c-cpc'><span class='lbl'>Custo por clique</span><span class='val' data-draw='c-cpc'>—</span><span class='note'><span data-draw='c-cliques'>—</span> cliques · <span data-draw='c-var-cpc'>—</span></span></div>
+      <div class='kpi' id='c-cpl'><span class='lbl'>Custo por lead</span><span class='val' data-draw='c-cpl'>—</span><span class='note'><span data-draw='c-leads'>—</span> leads atribuídos</span></div>
+      <div class='kpi' id='c-cpa'><span class='lbl'>Custo por aprovada</span><span class='val' data-draw='c-cpa'>—</span><span class='note'><span data-draw='c-aprov'>—</span> aprovadas</span></div>
+      <div class='kpi' id='c-cac'><span class='lbl'>Custo por expositora</span><span class='val' data-draw='c-cac'>—</span><span class='note'><span data-draw='c-expo'>—</span> expositoras</span></div>
+    </div>
+  </section>
+
+  <section class='card' id='por-campanha'>
+    <h2>Por campanha — o que mais traz marca aprovada e expositora</h2>
+    <p class='sub'>Campanha = utm_campaign do lead (perfil e período do filtro). Investimento e custos vêm das duas contas de anúncio, casando o nome da campanha no Meta com a UTM. Ordenado por expositoras e depois por aprovadas.</p>
+    <div class='tbl'><table>
+      <thead><tr><th>Campanha</th><th>Leads</th><th>Aprov.</th><th>% aprov.</th><th>Oportun.+</th><th>Expos.</th><th>% expos.</th><th>Investido</th><th>CPC</th><th>Custo/aprov.</th><th>Custo/expos.</th></tr></thead>
+      <tbody data-draw='campanhas'></tbody>
+    </table></div>
+  </section>
+
+  <div class='grid2'>
+    <section class='card' id='saude-conta'>
+      <h2>Saldo e ritmo de gasto</h2>
+      <div class='kpis'>
+        <div class='kpi' id='s-rest'><span class='lbl'>Falta até o limite de gasto</span><span class='val' data-draw='s-rest'>—</span><span class='note'>limite da conta − já gasto</span></div>
+        <div class='kpi' id='s-orc'><span class='lbl'>Orçamento diário ativo</span><span class='val' data-draw='s-orc'>—</span><span class='note'>soma dos conjuntos ativos</span></div>
+        <div class='kpi' id='s-dias'><span class='lbl'>Dias de saldo</span><span class='val' data-draw='s-dias'>—</span><span class='note'>no ritmo do orçamento</span></div>
+        <div class='kpi' id='s-ritmo'><span class='lbl'>Ritmo de gasto</span><span class='val' data-draw='s-ritmo'>—</span><span class='note'>gasto ÷ orçamento previsto no período (abaixo de 70%: a Meta não consegue gastar)</span></div>
+      </div>
+    </section>
+    <section class='card' id='sugestoes-box'>
+      <h2>Sugestões e alertas</h2>
+      <p class='sub'>Regras automáticas sobre o período escolhido.</p>
+      <div class='tbl'><table>
+        <thead><tr><th>Tipo</th><th style='text-align:left'>O que fazer</th></tr></thead>
+        <tbody data-draw='sugestoes'></tbody>
+      </table></div>
+    </section>
+  </div>
+
+  <section class='card' id='funil-midia'>
+    <h2>Funil da mídia — do anúncio ao lead</h2>
+    <p class='sub'>Cada etapa com a % da etapa anterior. Alcance somado por dia (aproximado).</p>
+    <div class='tbl'><table>
+      <thead><tr><th>Etapa</th><th>Total</th><th>% da etapa anterior</th><th>Custo por etapa</th></tr></thead>
+      <tbody data-draw='funil_midia'></tbody>
+    </table></div>
+  </section>
+
+  <section class='card' id='por-canal'>
+    <h2>Funil por canal de entrada</h2>
+    <p class='sub'>Canal = campo “Origem” do Airtable. Status atual de cada lead que entrou no período.</p>
+    <div class='tbl'><table>
+      <thead><tr><th>Canal</th><th>Leads</th><th>Aprovadas+</th><th>% aprov.</th><th>Oportun.+</th><th>Expositoras</th><th>Parados na entrada</th><th>Perdidos</th></tr></thead>
+      <tbody data-draw='canais'></tbody>
+    </table></div>
+  </section>
+
+  <section class='card' id='por-dia'>
+    <h2>Leads por dia × gasto em anúncios</h2>
+    <div class='legend'><span><i id='lg-leads'></i>Leads no Airtable (filtro de perfil)</span><span><i id='lg-gasto'></i>Gasto Meta (R$, filtro de perfil)</span></div>
+    <div class='chartbox' data-draw='diario'></div>
+  </section>
+
+  <section class='card' id='por-posicionamento'>
+    <h2>Por posicionamento — Reels, Stories, Feed</h2>
+    <p class='sub'>Contas do perfil escolhido. Leads pelo posicionamento gravado na landing page.</p>
+    <div class='tbl'><table>
+      <thead><tr><th>Posicionamento</th><th>Investido</th><th>Impressões</th><th>Cliques</th><th>CTR</th><th>CPC</th><th>Leads</th><th>CPL</th><th>Aprov.</th><th>Custo/aprov.</th></tr></thead>
+      <tbody data-draw='posicionamentos'></tbody>
+    </table></div>
+  </section>
+
+  <section class='card' id='por-publico'>
+    <h2>Por público (conjunto de anúncios)</h2>
+    <p class='sub'>Contas do perfil escolhido. Ordenado por investimento.</p>
+    <div class='tbl'><table>
+      <thead><tr><th>Público</th><th>Investido</th><th>Cliques</th><th>CPC</th><th>Leads</th><th>CPL</th><th>Aprov.</th><th>Custo/aprov.</th><th>Expos.</th><th>Custo/expos.</th></tr></thead>
+      <tbody data-draw='publicos'></tbody>
+    </table></div>
+  </section>
+
+  <section class='card' id='anuncios-julia'>
+    <h2>Por anúncio</h2>
+    <p class='sub'>Contas do perfil escolhido. Ordenado por investimento.</p>
+    <div class='tbl'><table>
+      <thead><tr><th>Anúncio · público</th><th>Investido</th><th>Cliques</th><th>CPC</th><th>Leads</th><th>CPL</th><th>Aprov.</th><th>Custo/aprov.</th><th>Leads Pixel</th></tr></thead>
+      <tbody data-draw='anuncios'></tbody>
+    </table></div>
+  </section>
+
+  <section class='card' id='comparativo-moombox'>
+    <h2>Comparativo dos anúncios da Moombox — o que replicar</h2>
+    <p class='sub'>Anúncios da Moombox Ads com gasto nos últimos 14 dias (ativos agora ou até a semana passada); números no período do filtro. Verde = melhor da coluna, vermelho = pior (só entre anúncios com R$ 50+). Custo/aprov. estimado = investido ÷ (leads do Meta × % de aprovação da campanha no Airtable), porque o lead do formulário Meta chega sem o anúncio. Custo/expos. est. = investido ÷ (expositoras da campanha × participação do anúncio nos leads do Meta da campanha); Custo/expos. camp. = gasto total da campanha ÷ expositoras da campanha. “—” = nenhuma expositora ainda. Os anúncios mudam várias coisas ao mesmo tempo: use para levantar hipóteses e testar uma variável por vez.</p>
+    <div class='tbl'><table>
+      <thead><tr><th>Anúncio · público</th><th>Status</th><th>Destino</th><th>Investido</th><th>CPM</th><th>CTR</th><th>Gancho 3s</th><th>Vídeo médio</th><th>Freq.</th><th>Leads Meta</th><th>CPL Meta</th><th>% aprov. camp.</th><th>Custo/aprov. est.</th><th>Expos. camp.</th><th>Custo/expos. est.</th><th>Custo/expos. camp.</th><th>Onde mais gastou</th></tr></thead>
+      <tbody data-draw='comparativo'></tbody>
+    </table></div>
+    <h2 style='margin-top:var(--cds-gap-lg)'>Ficha de cada anúncio — público e entrega</h2>
+    <div class='fichas' data-draw='fichas'></div>
+  </section>
+
+  <section class='card' id='criativos'>
+    <h2>Criativos — retenção do vídeo e eficiência</h2>
+    <p class='sub'>Gancho = viu 3s ÷ impressões (meta &gt; 25%). 25%–100% e ThruPlay também sobre impressões. Chegada = visitas ÷ cliques (abaixo de 60%: página lenta ou clique acidental). Investido = soma do gasto do anúncio no período do filtro, ordenado do maior para o menor.</p>
+    <div class='tbl'><table>
+      <thead><tr><th>Anúncio · público</th><th>Investido</th><th>Impr.</th><th>Freq.</th><th>CPM</th><th>CTR</th><th>Gancho 3s</th><th>25%</th><th>50%</th><th>75%</th><th>100%</th><th>ThruPlay</th><th>Chegada</th><th>Custo/visita</th></tr></thead>
+      <tbody data-draw='criativos'></tbody>
+    </table></div>
+  </section>
+
+  <div class='grid2'>
+    <section class='card' id='por-idade'>
+      <h2>Por idade</h2>
+      <div class='tbl'><table>
+        <thead><tr><th>Idade</th><th>Investido</th><th>% gasto</th><th>Cliques</th><th>% cliques</th><th>CTR</th><th>CPC</th></tr></thead>
+        <tbody data-draw='idades'></tbody>
+      </table></div>
+    </section>
+    <section class='card' id='por-aparelho'>
+      <h2>Por aparelho</h2>
+      <div class='tbl'><table>
+        <thead><tr><th>Aparelho</th><th>Investido</th><th>% gasto</th><th>Cliques</th><th>% cliques</th><th>CTR</th><th>CPC</th></tr></thead>
+        <tbody data-draw='aparelhos'></tbody>
+      </table></div>
+      <h2 style='margin-top:var(--cds-gap-lg)'>Por horário</h2>
+      <div class='tbl'><table>
+        <thead><tr><th>Período do dia</th><th>Investido</th><th>% gasto</th><th>Cliques</th><th>% cliques</th><th>CTR</th><th>CPC</th></tr></thead>
+        <tbody data-draw='horarios'></tbody>
+      </table></div>
+    </section>
+  </div>
+
+  <div class='grid2'>
+    <section class='card' id='safras'>
+      <h2>Safras de leads</h2>
+      <p class='sub'>Mês de entrada do lead (filtro de perfil, últimos 90 dias).</p>
+      <div class='tbl'><table>
+        <thead><tr><th>Safra</th><th>Leads</th><th>% aprov.</th><th>Oportun.+</th><th>Expos.</th><th>% expos.</th></tr></thead>
+        <tbody data-draw='safras'></tbody>
+      </table></div>
+    </section>
+    <section class='card' id='rastreamento'>
+      <h2>Saúde do rastreamento</h2>
+      <p class='sub'>Leads do período com algum furo de origem.</p>
+      <div class='tbl'><table>
+        <thead><tr><th>Problema</th><th>Leads</th><th>Impacto</th></tr></thead>
+        <tbody data-draw='rastreio'></tbody>
+      </table></div>
+    </section>
+  </div>
+
+  <section class='card' id='ultimos-leads'>
+    <h2>Leads do período</h2>
+    <p class='sub'>Os 30 mais recentes no Airtable (Contatos).</p>
+    <div class='tbl'><table>
+      <thead><tr><th>Marca</th><th>Entrada</th><th>Origem</th><th>Status</th><th>Campanha (UTM)</th></tr></thead>
+      <tbody data-draw='ultimos'></tbody>
+    </table></div>
+  </section>
+
+  <details id='notas'>
+    <summary>Como os números são calculados e o que falta</summary>
+    <ul>
+      <li>Perfil Julia = leads com UTM das campanhas da Julia (julia/lpns). Todo o resto conta como Moombox.</li>
+      <li>Custos das contas Moombox Ads e Julia (Meta, via Windsor). O filtro de perfil separa as contas: Julia = conta 971157280803730, Moombox = Moombox Ads.</li>
+      <li>Lead por anúncio, público e posicionamento usa o ID do anúncio e o posicionamento gravados pela landing page, ou o nome do anúncio na UTM. Funciona para leads a partir de 13/11.</li>
+      <li>“Aprovadas ou além” usa o status atual. Uma marca reprovada depois de aprovada conta como perdida.</li>
+      <li>Leads que chegam pelo WhatsApp e pelo Direct só aparecem quando alguém os cadastra no Airtable.</li>
+      <li>Os dados cobrem os últimos 90 dias. Registros de teste ficam fora das contas. Dados guardados por até 5 minutos no navegador.</li>
+    </ul>
+  </details>
+</div>
+
+<script src="/calc.js"></script>
+<script src="/draw.js"></script>
+</div>
+</body>
+</html>
