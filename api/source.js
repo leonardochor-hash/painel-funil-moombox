@@ -26,7 +26,7 @@ const AIRTABLE = {
 
 function autorizado(req) {
   const senha = process.env.PAINEL_SENHA;
-  if (!senha) return false;
+  if (!senha) return true; // sem PAINEL_SENHA na Vercel = painel aberto
   const h = req.headers.authorization || '';
   if (h.startsWith('Basic ')) {
     const dec = Buffer.from(h.slice(6), 'base64').toString();

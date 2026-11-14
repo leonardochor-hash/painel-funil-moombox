@@ -3,7 +3,7 @@ module.exports = async (req, res) => {
   const senha = process.env.PAINEL_SENHA;
   if (req.method === 'GET') {
     const c = req.headers.cookie || '';
-    const ok = !!senha && c.split(';').some((p) => p.trim() === 'painel=' + encodeURIComponent(senha));
+    const ok = !senha || c.split(';').some((p) => p.trim() === 'painel=' + encodeURIComponent(senha));
     res.status(ok ? 200 : 401).json({ ok });
     return;
   }
