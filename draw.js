@@ -173,3 +173,23 @@ listaExpo('kpis', 'k-expo-lista'); listaExpo('custos', 'c-expo-lista'); listaExp
 campo('fechadas', 'f-n', 'fechadas', MB.int); campo('fechadas', 'f-total', 'fechadas_total', MB.int); campo('fechadas', 'f-custo', 'custo', MB.brl); campo('fechadas', 'f-mensal', 'mensal', MB.brl);
 dash.draw('f-lojas', (el) => { const k = dash.data('fechadas'); el.textContent = (k.status === 'ok' && k.data[0] && k.data[0].lojas) || '—'; });
 dash.draw('f-outras', (el) => { const k = dash.data('fechadas'), l = (k.status === 'ok' && k.data[0] && k.data[0].outras_lista) || []; el.textContent = l.length ? 'Outras origens: ' + l.map((r) => r.marca + ' (' + r.canal + ')').join(', ') : ''; });
+
+const fmtD = (v) => v == null ? '—' : Math.round(v) + (Math.round(v) === 1 ? ' dia' : ' dias');
+dash.draw('ciclo', (el) => {
+  const k = dash.data('fechadas'), r = k.status === 'ok' && k.data[0];
+  el.replaceChildren();
+  if (!r) { el.textContent = k.status === 'error' ? k.message : 'Carregando…'; return; }
+  const top = document.createElement('div'); top.className = 'ciclo-top';
+  [['Tempo médio até fechar', fmtD(r.dias_medio)], ['Mediana', fmtD(r.dias_mediana)], ['Mais rápida / mais lenta', r.dias_min == null ? '—' : r.dias_min + ' / ' + r.dias_max + ' dias'], ['Novas leads fechadas', MB.int(r.novas) + (r.antigas ? ' (+' + r.antigas + ' leads antigos fora da conta)' : '')]].forEach(([l, v]) => {
+    const b = document.createElement('div'); b.className = 'kpi'; const a = document.createElement('span'); a.className = 'lbl'; a.textContent = l; const c = document.createElement('span'); c.className = 'val'; c.textContent = v; b.append(a, c); top.append(b); });
+  el.append(top);
+  if (!r.ciclo.length) { const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'Nenhuma lead nova fechou no período.'; el.append(p); return; }
+  const mx = Math.max(...r.ciclo.map((x) => x.dias), 1), lista = document.createElement('div'); lista.className = 'ciclo-lista';
+  r.ciclo.forEach((x) => {
+    const row = document.createElement('div'); row.className = 'ciclo-row';
+    const n = document.createElement('div'); n.className = 'ciclo-nome'; n.textContent = x.marca; const sub = document.createElement('div'); sub.className = 'muted'; sub.textContent = MB.dm(x.entrou) + ' → ' + MB.dm(x.fechou) + ' · ' + x.canal + (x.loja ? ' · ' + x.loja : ''); n.append(sub);
+    const bw = document.createElement('div'); bw.className = 'ciclo-barw'; const bar = document.createElement('div'); bar.className = 'ciclo-bar' + (x.dias <= 7 ? ' rap' : x.dias > 30 ? ' len' : ''); bar.style.width = Math.max(4, x.dias / mx * 100) + '%'; bw.append(bar);
+    const d = document.createElement('div'); d.className = 'ciclo-d'; d.textContent = fmtD(x.dias);
+    row.append(n, bw, d); lista.append(row); });
+  el.append(lista);
+});

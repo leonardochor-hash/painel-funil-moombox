@@ -31,6 +31,14 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 #login .erro{color:var(--color-bad);margin:0;font-size:.85rem}
 .expo-det{margin-top:6px;font-size:var(--cds-font-size-caption,12px)}.expo-det summary{cursor:pointer;color:var(--cds-color-text-secondary,#666)}.expo-item{padding:2px 0;line-height:1.35}
 .mb-mes{font:inherit;padding:4px 8px;border-radius:8px;border:1px solid var(--cds-color-border,#ddd);background:transparent;color:inherit}
+.ciclo-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:var(--cds-gap-sm);margin-bottom:14px}
+.ciclo-top .kpi{background:var(--cds-color-surface-secondary,rgba(0,0,0,.03));border-radius:10px;padding:10px 12px}
+.ciclo-top .val{font-size:1.6em}
+.ciclo-row{display:grid;grid-template-columns:minmax(150px,1.3fr) 2fr 70px;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--cds-color-border,rgba(0,0,0,.08))}
+.ciclo-nome{font-weight:600}.ciclo-nome .muted{font-weight:400;font-size:var(--cds-font-size-caption,12px)}
+.ciclo-barw{background:rgba(0,0,0,.05);border-radius:6px;height:12px}
+.ciclo-bar{height:12px;border-radius:6px;background:#3b82c4}.ciclo-bar.rap{background:#2e9e62}.ciclo-bar.len{background:#e08a2b}
+.ciclo-d{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script src="/dash.js"></script>
@@ -110,6 +118,12 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     <div class='card kpi' id='k-opor'><span class='lbl'>Oportunidades ou além</span><span class='val' data-draw='k-opor'>—</span><span class='note'>status 3 em diante</span></div>
     <div class='card kpi' id='k-fech'><span class='lbl'>Fechadas no período</span><span class='val' data-draw='f-n'>—</span><span class='note'>pela data de compra · Meta/LP/WhatsApp · <span data-draw='f-lojas'>—</span><br>custo por fechada <b data-draw='f-custo'>—</b> · mensalidades <b data-draw='f-mensal'>—</b> · <span data-draw='f-total'>—</span> no total</span><details class='expo-det'><summary>ver marcas</summary><div data-draw='f-lista'></div><div class='muted' data-draw='f-outras'></div></details></div>
     <div class='card kpi' id='k-expo'><span class='lbl'>Leads do período que viraram expositoras</span><span class='val' data-draw='k-expo'>—</span><span class='note'>dos leads que entraram no período</span><details class='expo-det'><summary>ver marcas</summary><div data-draw='k-expo-lista'></div></details></div>
+  </section>
+
+  <section class='card' id='ciclo'>
+    <h2>Do cadastro à compra — quanto tempo as novas leads levam para virar expositoras</h2>
+    <p class='sub'>Fechadas no período (data de compra, origem Meta/LP/WhatsApp) cuja lead entrou no Airtable até 90 dias antes. Retornos de marcas antigas ficam fora da média. Verde = até 7 dias · laranja = mais de 30.</p>
+    <div data-draw='ciclo'>—</div>
   </section>
 
   <section class='card' id='custos'>

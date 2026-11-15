@@ -315,10 +315,15 @@ dash.calc('fechadas', {
     const j = janela[0], okStatus = (s) => /^(6 - |7 - )/.test(s) || /^X - Exp Aviso/.test(s) || s === 'X - Ex Expositor';
     const l = todos.filter((r) => r.compra && r.compra >= j.de && r.compra <= j.ate && okStatus(r.status) && (j.perfil === 'todos' || r.perfil === j.perfil))
       .map((r) => ({marca: r.marca, dia: r.compra, entrou: r.dia, status: r.status, canal: r.canal, origem: r.origem, loja: r.loja, mensalidade: r.mensalidade, ads: /meta|whats|land/i.test(r.origem)}));
+    const dd = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5);
+    l.forEach((r) => { r.dias = r.entrou ? dd(r.entrou, r.dia) : null; r.novo = r.dias != null && r.dias >= 0 && r.dias <= 90; });
     const ad = l.filter((r) => r.ads), g = d3.sum(PF(ads).filter((r) => r.data >= j.de && r.data <= j.ate), (r) => r.gasto);
     const por = (k) => d3.rollups(ad, (v) => v.length, (r) => r.loja || 's/ loja').sort((a, b) => b[1] - a[1]).map(([lj, n]) => lj + ' ' + n).join(' · ');
-    return [{fechadas: ad.length, fechadas_total: l.length, custo: ad.length ? g / ad.length : null, lojas: por(), mensal: d3.sum(ad, (r) => r.mensalidade),
-      expo_lista: ad.map((r) => ({marca: r.marca, dia: r.dia, status: r.status, canal: r.canal + (r.loja ? ' · ' + r.loja : '') + (r.entrou ? ' · lead de ' + MB.dm(r.entrou) : '')})),
+    const nv = ad.filter((r) => r.novo), ds = nv.map((r) => r.dias);
+    return [{novas: nv.length, antigas: ad.length - nv.length, dias_medio: ds.length ? d3.mean(ds) : null, dias_mediana: ds.length ? d3.median(ds) : null, dias_min: ds.length ? d3.min(ds) : null, dias_max: ds.length ? d3.max(ds) : null,
+      ciclo: nv.slice().sort((a, b) => a.dias - b.dias).map((r) => ({marca: r.marca, entrou: r.entrou, fechou: r.dia, dias: r.dias, canal: r.canal, loja: r.loja})),
+      fechadas: ad.length, fechadas_total: l.length, custo: ad.length ? g / ad.length : null, lojas: por(), mensal: d3.sum(ad, (r) => r.mensalidade),
+      expo_lista: ad.map((r) => ({marca: r.marca, dia: r.dia, status: r.status, canal: r.canal + (r.loja ? ' · ' + r.loja : '') + (r.novo ? ' · entrou ' + MB.dm(r.entrou) + ' → ' + r.dias + ' dias' : ' · lead antigo (' + (r.entrou ? MB.mes(r.entrou) : 's/ data') + ')')})),
       outras_lista: l.filter((r) => !r.ads).map((r) => ({marca: r.marca, dia: r.dia, status: r.status, canal: (r.origem || 'sem origem') + (r.loja ? ' · ' + r.loja : '')}))}];
   }
 });
