@@ -129,6 +129,25 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     <div data-draw='ciclo'>—</div>
   </section>
 
+  <section class='card' id='travadas'>
+    <h2>Leads paradas e perdidas — quem não avançou</h2>
+    <p class='sub'>Leads que entraram no período e estão há tempo demais sem mudar de status: sem avançar (0/1) &gt; 3 dias · aprovada ou oportunidade &gt; 7 · proposta/contrato &gt; 5. Ordenado do mais perto de fechar para o mais longe. Clique no nome para abrir no Airtable.</p>
+    <div class='ciclo-top'>
+      <div class='kpi'><span class='lbl'>Paradas no total</span><span class='val' data-draw='tr-n'>—</span></div>
+      <div class='kpi'><span class='lbl'>Proposta / contrato</span><span class='val' data-draw='tr-proposta'>—</span></div>
+      <div class='kpi'><span class='lbl'>Oportunidade</span><span class='val' data-draw='tr-oportunidade'>—</span></div>
+      <div class='kpi'><span class='lbl'>Aprovada</span><span class='val' data-draw='tr-aprovada'>—</span></div>
+      <div class='kpi'><span class='lbl'>Sem avançar (0/1)</span><span class='val' data-draw='tr-entrada'>—</span></div>
+      <div class='kpi'><span class='lbl'>Perdidas (X)</span><span class='val' data-draw='tr-perdidas'>—</span><span class='note'><span data-draw='tr-taxa'>—</span> dos leads</span></div>
+    </div>
+    <p class='sub'>Motivos das perdidas: <span data-draw='tr-motivos'>—</span></p>
+    <details><summary>Ver lista das paradas</summary>
+    <div class='tbl'><table>
+      <thead><tr><th>Marca</th><th>Status</th><th>Parada há</th><th>Entrou</th><th>Origem</th><th>Loja</th><th>Responsável</th></tr></thead>
+      <tbody data-draw='travadas'></tbody>
+    </table></div></details>
+  </section>
+
   <section class='card' id='custos'>
     <h2>Custos de mídia — contas Moombox Ads + Julia</h2>
     <p class='sub'>Segue o filtro de perfil. Leads atribuídos = leads de canais pagos (formulário Meta, landing page, WhatsApp de anúncio) do perfil escolhido.</p>

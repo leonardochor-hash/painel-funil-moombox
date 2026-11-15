@@ -207,3 +207,17 @@ dash.draw('ciclo', (el) => {
     row.append(n, bw, d); lista.append(row); });
   el.append(lista);
 });
+
+['n', 'proposta', 'oportunidade', 'aprovada', 'entrada', 'perdidas'].forEach((k) => campo('travadas', 'tr-' + k, k, MB.int));
+campo('travadas', 'tr-taxa', 'taxa_perda', MB.pct);
+dash.draw('tr-motivos', (el) => { const k = dash.data('travadas'); el.textContent = (k.status === 'ok' && k.data[0] && k.data[0].motivos) || '—'; });
+dash.draw('travadas', (tb) => {
+  const k = dash.data('travadas'), l = (k.status === 'ok' && k.data[0] && k.data[0].lista) || [];
+  tb.replaceChildren();
+  if (!l.length) { const td = tb.insertRow().insertCell(); td.colSpan = 7; td.className = 'muted'; td.textContent = k.status === 'ok' ? 'Nenhuma lead parada no período. 👏' : msgStatus(k, ''); return; }
+  l.slice(0, 80).forEach((r) => { const tr = tb.insertRow();
+    const a = tr.insertCell(); a.className = 'wrap'; const lk = document.createElement('a'); lk.href = 'https://airtable.com/appJ6JOQgEdIDNnVJ/tblm3WZMjzes3aM5S/' + r.id; lk.target = '_blank'; lk.rel = 'noopener'; lk.textContent = r.marca + ' ↗'; lk.style.color = 'inherit'; a.append(lk);
+    tr.insertCell().textContent = r.status; const d = tr.insertCell(); d.textContent = r.parada + ' dias'; d.style.fontWeight = '600'; if (r.parada > 14) d.style.color = 'var(--color-warn)';
+    tr.insertCell().textContent = MB.dm(r.entrou); tr.insertCell().textContent = r.canal; tr.insertCell().textContent = r.loja || '—'; tr.insertCell().textContent = r.resp || '—'; });
+  if (l.length > 80) { const td = tb.insertRow().insertCell(); td.colSpan = 7; td.className = 'muted'; td.textContent = '+ ' + (l.length - 80) + ' leads paradas não mostradas.'; }
+});

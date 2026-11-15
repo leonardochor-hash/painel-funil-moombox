@@ -4,15 +4,15 @@ dash.loader('leads', {
     if (answer && answer.error) throw new Error(answer.error.message || String(answer.error));
     const pages = [answer]; let a = answer, n = 0;
     while (a && a.nextCursor && n < 8) { a = await call('list_records_for_table', Object.assign({}, args, {cursor: a.nextCursor})); pages.push(a); n++; }
-    const F = {marca:'fldGmvhtiErEDHSeo', status:'fldFhpivgeWlIub5l', origem:'fldt8Pj7VHxWbbgDm', dia:'fldEdfZ5bPcKBGBHW', utm_campaign:'fldUJ54qkweyo7OPs', utm_medium:'fld1SSKpuN5VrcImt', utm_content:'fldyMup9Yv7HAQaSZ', obs:'fld9NMnockPfCJZpC', fbclid:'fldkoenYwt0J9R1OL', qualificado:'fldaXA9qR2IBmRMjx', compra:'fldiBu74XwR7prwPh', loja:'fldsbPhELYcSRBLM2', mensal:'fldoUvnydMjJgmdzk'};
+    const F = {marca:'fldGmvhtiErEDHSeo', status:'fldFhpivgeWlIub5l', origem:'fldt8Pj7VHxWbbgDm', dia:'fldEdfZ5bPcKBGBHW', utm_campaign:'fldUJ54qkweyo7OPs', utm_medium:'fld1SSKpuN5VrcImt', utm_content:'fldyMup9Yv7HAQaSZ', obs:'fld9NMnockPfCJZpC', fbclid:'fldkoenYwt0J9R1OL', qualificado:'fldaXA9qR2IBmRMjx', compra:'fldiBu74XwR7prwPh', loja:'fldsbPhELYcSRBLM2', mensal:'fldoUvnydMjJgmdzk', mudou:'fldwoqgb4B9XpFN1g', resp:'fldZq7UOcqcoZlOoQ'};
     const rows = [];
     for (const p of pages) for (const r of ((p && p.records) || [])) {
       const c = r.cellValuesByFieldId || {};
       rows.push({id: r.id, dia: c[F.dia] || '', marca: String(c[F.marca] || '').trim(), status: String((c[F.status] && c[F.status].name) || '').trim(),
         origem: String(c[F.origem] || '').trim(), utm_campaign: String(c[F.utm_campaign] || ''), utm_medium: String(c[F.utm_medium] || ''), utm_content: String(c[F.utm_content] || ''),
-        observacoes: String(c[F.obs] || ''), tem_fbclid: c[F.fbclid] ? 'sim' : 'não', qualificado_em: c[F.qualificado] || '', criado_em: r.createdTime, compra: String(c[F.compra] || '').slice(0, 10), loja: String((c[F.loja] && c[F.loja].name) || c[F.loja] || ''), mensalidade: +c[F.mensal] || 0});
+        observacoes: String(c[F.obs] || ''), tem_fbclid: c[F.fbclid] ? 'sim' : 'não', qualificado_em: c[F.qualificado] || '', criado_em: r.createdTime, compra: String(c[F.compra] || '').slice(0, 10), loja: String((c[F.loja] && c[F.loja].name) || c[F.loja] || ''), mensalidade: +c[F.mensal] || 0, mudou: String(c[F.mudou] || '').slice(0, 10), resp: (Array.isArray(c[F.resp]) ? c[F.resp] : []).map((u) => (u && (u.name || u.email)) || '').filter(Boolean).join(', ')});
     }
-    return {rows, columns: ['id','dia','marca','status','origem','utm_campaign','utm_medium','utm_content','observacoes','tem_fbclid','qualificado_em','criado_em','compra','loja','mensalidade'], truncated: !!(a && a.nextCursor)};
+    return {rows, columns: ['id','dia','marca','status','origem','utm_campaign','utm_medium','utm_content','observacoes','tem_fbclid','qualificado_em','criado_em','compra','loja','mensalidade','mudou','resp'], truncated: !!(a && a.nextCursor)};
   }
 });
 const windsorLoader = (cols, map) => async ({answer, call, args}) => {
@@ -126,7 +126,7 @@ dash.calc('todos', {
         const e = etapa(r.status);
         return {id: r.id, dia: r.dia, canal: canal(r.origem), pago: ['Formulário Meta','Landing page','WhatsApp (anúncio)'].includes(canal(r.origem)) || /julia|lpns/i.test(r.utm_campaign + ' ' + r.utm_medium), etapa: e, aprov: ['aprovada','oportunidade','proposta','expositor'].includes(e), expo: e === 'expositor',
           perfil: /julia|lpns/i.test(r.utm_campaign + ' ' + r.utm_medium) ? 'julia' : 'moombox', ad_id: ad, posicionamento: pos(pl),
-          status: r.status, utm_campaign: r.utm_campaign, utm_medium: r.utm_medium, utm_content: r.utm_content, marca: r.marca, origem: r.origem, criado_em: r.criado_em, compra: r.compra || '', loja: r.loja || '', mensalidade: r.mensalidade || 0}; });
+          status: r.status, utm_campaign: r.utm_campaign, utm_medium: r.utm_medium, utm_content: r.utm_content, marca: r.marca, origem: r.origem, criado_em: r.criado_em, compra: r.compra || '', loja: r.loja || '', mensalidade: r.mensalidade || 0, mudou: r.mudou || '', resp: r.resp || ''}; });
   }
 });
 dash.calc('base', {
@@ -325,6 +325,20 @@ dash.calc('fechadas', {
       fechadas: ad.length, fechadas_total: l.length, custo: ad.length ? g / ad.length : null, lojas: por(), mensal: d3.sum(ad, (r) => r.mensalidade),
       expo_lista: ad.map((r) => ({marca: r.marca, dia: r.dia, status: r.status, canal: r.canal + (r.loja ? ' · ' + r.loja : '') + (r.novo ? ' · entrou ' + MB.dm(r.entrou) + ' → ' + r.dias + ' dias' : ' · lead antigo (' + (r.entrou ? MB.mes(r.entrou) : 's/ data') + ')')})),
       outras_lista: l.filter((r) => !r.ads).map((r) => ({marca: r.marca, dia: r.dia, status: r.status, canal: (r.origem || 'sem origem') + (r.loja ? ' · ' + r.loja : '')}))}];
+  }
+});
+dash.calc('travadas', {
+  inputs: ['base'],
+  fn: (base) => {
+    const hoje = d3.timeFormat('%Y-%m-%d')(new Date()), dd = (a) => a ? Math.round((Date.parse(hoje) - Date.parse(a)) / 864e5) : null;
+    const lim = {entrada: 3, aprovada: 7, oportunidade: 7, proposta: 5}, ord = {proposta: 0, oportunidade: 1, aprovada: 2, entrada: 3};
+    const nomes = {entrada: 'Sem avançar (0/1)', aprovada: 'Aprovada', oportunidade: 'Oportunidade', proposta: 'Proposta / contrato'};
+    const l = base.filter((r) => lim[r.etapa] != null).map((r) => { const ref = r.mudou && r.mudou >= r.dia ? r.mudou : r.dia; return {marca: r.marca, etapa: r.etapa, etapa_nome: nomes[r.etapa], status: r.status, entrou: r.dia, parada: dd(ref), canal: r.canal, loja: r.loja, resp: r.resp, id: r.id}; })
+      .filter((r) => r.parada != null && r.parada > lim[r.etapa]).sort((a, b) => ord[a.etapa] - ord[b.etapa] || b.parada - a.parada);
+    const perd = base.filter((r) => r.etapa === 'perdida'), motivo = d3.rollups(perd, (v) => v.length, (r) => r.status.replace(/^X - /, '').replace(/[☠️⛔️]/g, '').trim()).sort((a, b) => b[1] - a[1]);
+    const cont = (e) => l.filter((r) => r.etapa === e).length;
+    return [{n: l.length, proposta: cont('proposta'), oportunidade: cont('oportunidade'), aprovada: cont('aprovada'), entrada: cont('entrada'), perdidas: perd.length, taxa_perda: base.length ? perd.length / base.length : null,
+      motivos: motivo.map(([m, n]) => m + ' ' + n).join(' · '), lista: l}];
   }
 });
 dash.calc('campanhas', {

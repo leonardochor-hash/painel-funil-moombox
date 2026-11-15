@@ -20,7 +20,8 @@ const WINDSOR = {
 const AIRTABLE = {
   base: 'appJ6JOQgEdIDNnVJ',
   table: 'tblm3WZMjzes3aM5S',
-  fields: ['fldGmvhtiErEDHSeo','fldFhpivgeWlIub5l','fldt8Pj7VHxWbbgDm','fldEdfZ5bPcKBGBHW','fldUJ54qkweyo7OPs','fld1SSKpuN5VrcImt','fldyMup9Yv7HAQaSZ','fld9NMnockPfCJZpC','fldkoenYwt0J9R1OL','fldaXA9qR2IBmRMjx','fldiBu74XwR7prwPh','fldsbPhELYcSRBLM2','fldoUvnydMjJgmdzk'],
+  fields: ['fldGmvhtiErEDHSeo','fldFhpivgeWlIub5l','fldt8Pj7VHxWbbgDm','fldEdfZ5bPcKBGBHW','fldUJ54qkweyo7OPs','fld1SSKpuN5VrcImt','fldyMup9Yv7HAQaSZ','fld9NMnockPfCJZpC','fldkoenYwt0J9R1OL','fldaXA9qR2IBmRMjx','fldiBu74XwR7prwPh','fldsbPhELYcSRBLM2','fldoUvnydMjJgmdzk','fldwoqgb4B9XpFN1g','fldZq7UOcqcoZlOoQ'],
+  mudou: 'fldwoqgb4B9XpFN1g',
   compra: 'fldiBu74XwR7prwPh',
   viewCompras: 'viw58ZADOmkx0MoYW',
   dia: 'fldEdfZ5bPcKBGBHW',
@@ -61,6 +62,7 @@ async function airtable() {
         const c = Object.assign({}, rec.fields);
         if (c[AIRTABLE.dia]) c[AIRTABLE.dia] = diaSP(c[AIRTABLE.dia]);
         if (c[AIRTABLE.compra]) c[AIRTABLE.compra] = diaSP(c[AIRTABLE.compra]);
+        if (c[AIRTABLE.mudou]) c[AIRTABLE.mudou] = diaSP(c[AIRTABLE.mudou]);
         if (typeof c[AIRTABLE.status] === 'string') c[AIRTABLE.status] = { name: c[AIRTABLE.status] };
         porId.set(rec.id, { id: rec.id, createdTime: rec.createdTime, cellValuesByFieldId: c });
       }
