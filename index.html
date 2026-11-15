@@ -39,6 +39,9 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 .ciclo-barw{background:rgba(0,0,0,.05);border-radius:6px;height:12px}
 .ciclo-bar{height:12px;border-radius:6px;background:#3b82c4}.ciclo-bar.rap{background:#2e9e62}.ciclo-bar.len{background:#e08a2b}
 .ciclo-d{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.linha-total td{font-weight:700;border-top:2px solid currentColor}
+.tbl-rodape{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;margin-top:8px;font-size:var(--cds-font-size-caption,12px)}
+.tbl-rodape label{cursor:pointer;display:flex;gap:6px;align-items:center}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script src="/dash.js"></script>
@@ -145,6 +148,7 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       <thead><tr><th>Campanha</th><th>Leads</th><th>Aprov.</th><th>% aprov.</th><th>Oportun.+</th><th>Expos.</th><th>% expos.</th><th>Investido</th><th>CPC</th><th>Custo/aprov.</th><th>Custo/expos.</th></tr></thead>
       <tbody data-draw='campanhas'></tbody>
     </table></div>
+    <div class='tbl-rodape'><label><input type='checkbox' class='fx' id='fx-campanhas'> Só campanhas com investimento</label><span class='muted' data-draw='confere-campanhas'></span></div>
   </section>
 
   <div class='grid2'>

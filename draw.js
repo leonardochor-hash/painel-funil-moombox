@@ -50,7 +50,21 @@ const tabela = (name, src, cols) => dash.draw(name, (tb) => {
   tb.replaceChildren();
   const rows = d.status === 'ok' ? (d.data || []) : [];
   if (!rows.length) { const td = tb.insertRow().insertCell(); td.colSpan = cols.length; td.className = 'muted'; td.style.textAlign = 'left'; td.textContent = msgStatus(d, 'Sem dados no período.'); return; }
-  rows.forEach((r) => { const tr = tb.insertRow(); cols.forEach((c) => { const td = tr.insertCell(); c(td, r); }); });
+  const fx = document.getElementById('fx-' + name), lst = fx && fx.checked ? rows.filter((r) => r.gasto > 0) : rows;
+  lst.forEach((r) => { const tr = tb.insertRow(); cols.forEach((c) => { const td = tr.insertCell(); c(td, r); }); });
+  if (TOTAIS[name] && lst.length) { const tr = tb.insertRow(); tr.className = 'linha-total'; const r = TOTAIS[name](lst); cols.forEach((c, i) => { const td = tr.insertCell(); if (i === 0) td.textContent = r._rotulo; else c(td, r); }); }
+});
+const TOTAIS = {
+  campanhas: (l) => { const s = (k) => d3.sum(l, (r) => r[k] || 0), g = s('gasto'), le = s('leads'), ap = s('aprovados'), ex = s('expositores'), cl = d3.sum(l, (r) => r.gasto && r.cpc ? r.gasto / r.cpc : 0);
+    return {_rotulo: 'Total · ' + l.length + ' campanha' + (l.length > 1 ? 's' : ''), leads: le, aprovados: ap, taxa_aprov: le ? ap / le : null, oportunidades: s('oportunidades'), expositores: ex, taxa_expo: le ? ex / le : null, gasto: g, cpc: cl ? g / cl : null, custo_aprov: ap ? g / ap : null, cac: ex ? g / ex : null}; }
+};
+document.querySelectorAll('.fx').forEach((el) => el.addEventListener('change', () => dash.setParams({})));
+dash.draw('confere-campanhas', (el) => {
+  const a = dash.data('campanhas'), c = dash.data('custos');
+  if (a.status !== 'ok' || c.status !== 'ok' || !c.data[0]) { el.textContent = ''; return; }
+  const soma = d3.sum(a.data, (r) => r.gasto || 0), tot = c.data[0].gasto || 0, dif = Math.abs(soma - tot);
+  el.textContent = 'Conferência: soma da tabela ' + MB.brl(soma) + ' · investido nas contas ' + MB.brl(tot) + (dif < 1 ? ' ✓ bate' : ' · diferença ' + MB.brl(soma - tot));
+  el.style.color = dif < 1 ? '' : 'var(--color-warn)';
 });
 const t = (f, k) => (td, r) => { td.textContent = f(r[k]); };
 tabela('canais', 'canais', [t(String, 'canal'), t(MB.int, 'leads'), t(MB.int, 'aprovados'), t(MB.pct, 'taxa_aprov'), t(MB.int, 'oportunidades'), t(MB.int, 'expositores'),
