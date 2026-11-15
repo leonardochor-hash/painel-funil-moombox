@@ -26,7 +26,7 @@ window.PF = (rows) => { const p = dash.params().perfil || 'todos'; return p === 
 window.PAGO = (r, pf) => r.pago && (pf === 'todos' || r.perfil === pf);
 dash.loader('meta_ads', {
   description: 'Uma linha por dia e anúncio.',
-  fn: windsorLoader(['data','campanha','conjunto','conjunto_id','anuncio','ad_id','gasto','impressoes','cliques','leads_pixel','leads_meta'], (r) => ({data: r.date, campanha: r.campaign, conjunto: r.adset_name, conjunto_id: String(r.adset_id || ''), anuncio: r.ad_name, ad_id: String(r.ad_id),
+  fn: windsorLoader(['data','campanha','campanha_id','conjunto','conjunto_id','anuncio','ad_id','gasto','impressoes','cliques','leads_pixel','leads_meta'], (r) => ({data: r.date, campanha: r.campaign, campanha_id: String(r.campaign_id || ''), conjunto: r.adset_name, conjunto_id: String(r.adset_id || ''), anuncio: r.ad_name, ad_id: String(r.ad_id),
     gasto: +r.spend || 0, impressoes: +r.impressions || 0, cliques: +r.link_clicks || 0, leads_pixel: +r.actions_offsite_conversion_fb_pixel_lead || 0, leads_meta: +r.actions_lead || 0}))
 });
 dash.loader('meta_plac', {
@@ -312,11 +312,11 @@ dash.calc('campanhas', {
     const norm = (c) => String(c || '').trim().replace(/^_moobox_/, '').replace(/[_-](facebook-instagram|instagram)__.*$/, '');
     const nome = (r) => { const c = (r.utm_campaign || '').trim(); if (!c) return '(sem UTM) ' + r.canal; if (c.includes('{{')) return '(UTM quebrada)';
       if (/captacao-julia/i.test(c)) return 'Captação Marcas | Julia | NorteShopping 5km | Nov26'; return norm(c); };
-    const G = d3.rollup(ads, (v) => ({gasto: d3.sum(v, (r) => r.gasto), cliques: d3.sum(v, (r) => r.cliques)}), (r) => norm(r.campanha));
+    const G = d3.rollup(ads, (v) => ({gasto: d3.sum(v, (r) => r.gasto), cliques: d3.sum(v, (r) => r.cliques), perfil: v[0].perfil, ids: [...new Set(v.map((r) => r.campanha_id).filter(Boolean))].join(',')}), (r) => norm(r.campanha));
     const rows = d3.rollups(base, (v) => { const ap = v.filter((r) => r.aprov).length, ex = v.filter((r) => r.expo).length;
       return {leads: v.length, aprovados: ap, taxa_aprov: ap / v.length, oportunidades: v.filter((r) => ['oportunidade','proposta','expositor'].includes(r.etapa)).length, expositores: ex, taxa_expo: ex / v.length}; }, nome)
-      .map(([campanha, o]) => { const g = G.get(campanha); return Object.assign({campanha}, o, {gasto: g ? g.gasto : null, cpc: g && g.cliques ? g.gasto / g.cliques : null, custo_aprov: g && o.aprovados ? g.gasto / o.aprovados : null, cac: g && o.expositores ? g.gasto / o.expositores : null}); });
-    G.forEach((g, campanha) => { if (!rows.find((r) => r.campanha === campanha) && g.gasto > 0) rows.push({campanha, leads: 0, aprovados: 0, taxa_aprov: null, oportunidades: 0, expositores: 0, taxa_expo: null, gasto: g.gasto, cpc: g.cliques ? g.gasto / g.cliques : null, custo_aprov: null, cac: null}); });
+      .map(([campanha, o]) => { const g = G.get(campanha); return Object.assign({campanha}, o, {perfil: g ? g.perfil : null, campanha_ids: g ? g.ids : '', gasto: g ? g.gasto : null, cpc: g && g.cliques ? g.gasto / g.cliques : null, custo_aprov: g && o.aprovados ? g.gasto / o.aprovados : null, cac: g && o.expositores ? g.gasto / o.expositores : null}); });
+    G.forEach((g, campanha) => { if (!rows.find((r) => r.campanha === campanha) && g.gasto > 0) rows.push({campanha, perfil: g.perfil, campanha_ids: g.ids, leads: 0, aprovados: 0, taxa_aprov: null, oportunidades: 0, expositores: 0, taxa_expo: null, gasto: g.gasto, cpc: g.cliques ? g.gasto / g.cliques : null, custo_aprov: null, cac: null}); });
     return rows.sort((a, b) => b.expositores - a.expositores || b.aprovados - a.aprovados || b.leads - a.leads);
   }
 });
@@ -330,7 +330,7 @@ window.MB = {
   CONTAS: {julia: {act: '971157280803730', biz: '761879491116813'}, moombox: {act: '2868359933189609', biz: ''}},
   linkMeta: (perfil, nivel, id, texto, titulo) => {
     const c = MB.CONTAS[perfil === 'julia' ? 'julia' : 'moombox'], a = document.createElement('a');
-    a.href = 'https://adsmanager.facebook.com/adsmanager/manage/' + nivel + '?act=' + c.act + (c.biz ? '&business_id=' + c.biz : '') + (id ? '&selected_' + (nivel === 'ads' ? 'ad' : 'adset') + '_ids=' + encodeURIComponent(id) : '');
+    a.href = 'https://adsmanager.facebook.com/adsmanager/manage/' + nivel + '?act=' + c.act + (c.biz ? '&business_id=' + c.biz : '') + (id ? '&selected_' + ({ads: 'ad', adsets: 'adset', campaigns: 'campaign'})[nivel] + '_ids=' + encodeURIComponent(id) : '');
     a.target = '_blank'; a.rel = 'noopener'; a.title = 'Abrir no Gerenciador de Anúncios: ' + titulo; a.textContent = texto + ' ↗'; a.style.color = 'inherit';
     return a;
   },
