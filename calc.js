@@ -152,6 +152,7 @@ dash.calc('kpis', {
       aprovados: aprov, taxa_aprov: base.length ? aprov / base.length : 0,
       oportunidades: base.filter((r) => ['oportunidade','proposta','expositor'].includes(r.etapa)).length,
       expositores: base.filter((r) => r.expo).length,
+      expo_lista: base.filter((r) => r.expo).map((r) => ({marca: r.marca, dia: r.dia, status: r.status, canal: r.canal})),
       leads_moombox: per.filter((r) => r.perfil === 'moombox').length,
       leads_julia: per.filter((r) => r.perfil === 'julia').length
     }];
@@ -163,7 +164,7 @@ dash.calc('custos', {
     const j = janela[0]; ads = PF(ads);
     const soma = (de, ate) => { const a = ads.filter((r) => r.data >= de && r.data <= ate); const l = todos.filter((r) => PAGO(r, j.perfil) && r.dia >= de && r.dia <= ate);
       const g = d3.sum(a, (r) => r.gasto), c = d3.sum(a, (r) => r.cliques), ap = l.filter((r) => r.aprov).length, ex = l.filter((r) => r.expo).length;
-      return {gasto: g, cliques: c, cpc: c ? g / c : null, leads: l.length, cpl: l.length ? g / l.length : null, aprovados: ap, custo_aprov: ap ? g / ap : null, expositores: ex, cac: ex ? g / ex : null}; };
+      return {gasto: g, cliques: c, cpc: c ? g / c : null, leads: l.length, cpl: l.length ? g / l.length : null, aprovados: ap, custo_aprov: ap ? g / ap : null, expositores: ex, cac: ex ? g / ex : null, expo_lista: l.filter((r) => r.expo).map((r) => ({marca: r.marca, dia: r.dia, status: r.status, canal: r.canal}))}; };
     const at = soma(j.de, j.ate), an = soma(j.ant_de, j.ant_ate);
     const v = (x, y) => (x != null && y) ? x / y - 1 : null;
     return [Object.assign(at, {var_gasto: v(at.gasto, an.gasto), var_cpc: v(at.cpc, an.cpc)})];

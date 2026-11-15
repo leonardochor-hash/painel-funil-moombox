@@ -151,3 +151,18 @@ dash.draw('fichas', (el) => {
   });
 });
 tabela('idades', 'idades', linhaGrupo()); tabela('aparelhos', 'aparelhos', linhaGrupo()); tabela('horarios', 'horarios', linhaGrupo());
+
+const listaExpo = (src, name) => dash.draw(name, (el) => {
+  const k = dash.data(src), l = (k.status === 'ok' && k.data && k.data[0] && k.data[0].expo_lista) || [];
+  el.replaceChildren();
+  const card = el.closest('.kpi');
+  if (card) card.title = l.length ? l.map((r) => r.marca).join('\n') : '';
+  const det = el.closest('details'); if (det) det.style.display = l.length ? '' : 'none';
+  l.slice().sort((a, b) => d3.descending(a.dia, b.dia)).forEach((r) => {
+    const li = document.createElement('div'); li.className = 'expo-item';
+    const b = document.createElement('b'); b.textContent = r.marca || '(sem nome)';
+    const m = document.createElement('span'); m.className = 'muted'; m.textContent = ' · entrou ' + MB.dm(r.dia) + ' · ' + r.canal + (/inadimpl/i.test(r.status) ? ' · inadimplente' : '');
+    li.append(b, m); el.append(li);
+  });
+});
+listaExpo('kpis', 'k-expo-lista'); listaExpo('custos', 'c-expo-lista');

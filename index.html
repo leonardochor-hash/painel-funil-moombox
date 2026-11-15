@@ -29,6 +29,7 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 #login input,#login button{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg)}
 #login button{background:var(--color-fg);color:var(--color-bg);cursor:pointer;border:0}
 #login .erro{color:var(--color-bad);margin:0;font-size:.85rem}
+.expo-det{margin-top:6px;font-size:var(--cds-font-size-caption,12px)}.expo-det summary{cursor:pointer;color:var(--cds-color-text-secondary,#666)}.expo-item{padding:2px 0;line-height:1.35}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script src="/dash.js"></script>
@@ -105,7 +106,7 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     <div class='card kpi' id='k-leads'><span class='lbl'>Leads</span><span class='val' data-draw='k-leads'>—</span><span class='note'><span data-draw='k-var-leads'>—</span> vs. período anterior (<span data-draw='k-ant'>—</span>)</span></div>
     <div class='card kpi' id='k-aprov'><span class='lbl'>Aprovadas ou além</span><span class='val' data-draw='k-aprov'>—</span><span class='note'><span data-draw='k-taxa'>—</span> dos leads</span></div>
     <div class='card kpi' id='k-opor'><span class='lbl'>Oportunidades ou além</span><span class='val' data-draw='k-opor'>—</span><span class='note'>status 3 em diante</span></div>
-    <div class='card kpi' id='k-expo'><span class='lbl'>Viraram expositoras</span><span class='val' data-draw='k-expo'>—</span><span class='note'>dos leads que entraram no período</span></div>
+    <div class='card kpi' id='k-expo'><span class='lbl'>Viraram expositoras</span><span class='val' data-draw='k-expo'>—</span><span class='note'>dos leads que entraram no período</span><details class='expo-det'><summary>ver marcas</summary><div data-draw='k-expo-lista'></div></details></div>
   </section>
 
   <section class='card' id='custos'>
@@ -116,7 +117,7 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
       <div class='kpi' id='c-cpc'><span class='lbl'>Custo por clique</span><span class='val' data-draw='c-cpc'>—</span><span class='note'><span data-draw='c-cliques'>—</span> cliques · <span data-draw='c-var-cpc'>—</span></span></div>
       <div class='kpi' id='c-cpl'><span class='lbl'>Custo por lead</span><span class='val' data-draw='c-cpl'>—</span><span class='note'><span data-draw='c-leads'>—</span> leads atribuídos</span></div>
       <div class='kpi' id='c-cpa'><span class='lbl'>Custo por aprovada</span><span class='val' data-draw='c-cpa'>—</span><span class='note'><span data-draw='c-aprov'>—</span> aprovadas</span></div>
-      <div class='kpi' id='c-cac'><span class='lbl'>Custo por expositora</span><span class='val' data-draw='c-cac'>—</span><span class='note'><span data-draw='c-expo'>—</span> expositoras</span></div>
+      <div class='kpi' id='c-cac'><span class='lbl'>Custo por expositora</span><span class='val' data-draw='c-cac'>—</span><span class='note'><span data-draw='c-expo'>—</span> expositoras (vindas de anúncio)</span><details class='expo-det'><summary>ver marcas</summary><div data-draw='c-expo-lista'></div></details></div>
     </div>
   </section>
 
