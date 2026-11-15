@@ -90,7 +90,7 @@ dash.calc('comparativo', {
 });
 
 dash.calc('janela', {
-  inputs: ['leads'],
+  inputs: [],
   fn: (_leads) => {
     const p = dash.params(), f = d3.timeFormat('%Y-%m-%d'), hoje = d3.timeDay.floor(new Date());
     let de, ate;
