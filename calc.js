@@ -126,7 +126,7 @@ dash.calc('todos', {
         const e = etapa(r.status);
         return {id: r.id, dia: r.dia, canal: canal(r.origem), pago: ['Formulário Meta','Landing page','WhatsApp (anúncio)'].includes(canal(r.origem)) || /julia|lpns/i.test(r.utm_campaign + ' ' + r.utm_medium), etapa: e, aprov: ['aprovada','oportunidade','proposta','expositor'].includes(e), expo: e === 'expositor',
           perfil: /julia|lpns/i.test(r.utm_campaign + ' ' + r.utm_medium) ? 'julia' : 'moombox', ad_id: ad, posicionamento: pos(pl),
-          status: r.status, utm_campaign: r.utm_campaign, utm_medium: r.utm_medium, utm_content: r.utm_content, marca: r.marca, origem: r.origem, criado_em: r.criado_em, compra: r.compra || '', loja: r.loja || '', mensalidade: r.mensalidade || 0, mudou: r.mudou || '', resp: r.resp || ''}; });
+          status: r.status, utm_campaign: r.utm_campaign, utm_medium: r.utm_medium, utm_content: r.utm_content, marca: r.marca, origem: r.origem, criado_em: r.criado_em, fbclid: r.tem_fbclid === 'sim', compra: r.compra || '', loja: r.loja || '', mensalidade: r.mensalidade || 0, mudou: r.mudou || '', resp: r.resp || ''}; });
   }
 });
 dash.calc('base', {
@@ -312,15 +312,16 @@ dash.calc('sugestoes', {
 dash.calc('fechadas', {
   inputs: ['todos', 'meta_ads', 'janela'],
   fn: (todos, ads, janela) => {
+    const atrib = dash.params().atrib === 'equipe' ? 'equipe' : 'anuncio';
     const j = janela[0], okStatus = (s) => /^(6 - |7 - )/.test(s) || /^X - Exp Aviso/.test(s) || s === 'X - Ex Expositor';
     const l = todos.filter((r) => r.compra && r.compra >= j.de && r.compra <= j.ate && okStatus(r.status) && (j.perfil === 'todos' || r.perfil === j.perfil))
-      .map((r) => ({marca: r.marca, dia: r.compra, entrou: r.dia, status: r.status, canal: r.canal, origem: r.origem, loja: r.loja, mensalidade: r.mensalidade, ads: /meta|whats|land/i.test(r.origem)}));
+      .map((r) => ({marca: r.marca, dia: r.compra, entrou: r.dia, status: r.status, canal: r.canal, origem: r.origem, loja: r.loja, mensalidade: r.mensalidade, ads: atrib === 'equipe' ? /meta|whats|land/i.test(r.origem) : (r.pago || r.fbclid || /moobox|facebook|instagram|meta|julia|lpns/i.test(r.utm_campaign + ' ' + r.utm_medium))}));
     const dd = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5);
     l.forEach((r) => { r.dias = r.entrou ? dd(r.entrou, r.dia) : null; r.novo = r.dias != null && r.dias >= 0 && r.dias <= 90; });
     const ad = l.filter((r) => r.ads), g = d3.sum(PF(ads).filter((r) => r.data >= j.de && r.data <= j.ate), (r) => r.gasto);
     const por = (k) => d3.rollups(ad, (v) => v.length, (r) => r.loja || 's/ loja').sort((a, b) => b[1] - a[1]).map(([lj, n]) => lj + ' ' + n).join(' · ');
     const nv = ad.filter((r) => r.novo), ds = nv.map((r) => r.dias);
-    return [{novas: nv.length, antigas: ad.length - nv.length, dias_medio: ds.length ? d3.mean(ds) : null, dias_mediana: ds.length ? d3.median(ds) : null, dias_min: ds.length ? d3.min(ds) : null, dias_max: ds.length ? d3.max(ds) : null,
+    return [{atrib, novas: nv.length, antigas: ad.length - nv.length, dias_medio: ds.length ? d3.mean(ds) : null, dias_mediana: ds.length ? d3.median(ds) : null, dias_min: ds.length ? d3.min(ds) : null, dias_max: ds.length ? d3.max(ds) : null,
       ciclo: nv.slice().sort((a, b) => a.dias - b.dias).map((r) => ({marca: r.marca, entrou: r.entrou, fechou: r.dia, dias: r.dias, canal: r.canal, loja: r.loja})),
       fechadas: ad.length, fechadas_total: l.length, custo: ad.length ? g / ad.length : null, lojas: por(), mensal: d3.sum(ad, (r) => r.mensalidade),
       expo_lista: ad.map((r) => ({marca: r.marca, dia: r.dia, status: r.status, canal: r.canal + (r.loja ? ' · ' + r.loja : '') + (r.novo ? ' · entrou ' + MB.dm(r.entrou) + ' → ' + r.dias + ' dias' : ' · lead antigo (' + (r.entrou ? MB.mes(r.entrou) : 's/ data') + ')')})),

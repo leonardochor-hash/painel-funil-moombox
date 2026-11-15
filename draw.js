@@ -1,4 +1,5 @@
 document.querySelectorAll('.mb-per').forEach((b) => b.addEventListener('click', () => dash.setParams({periodo: b.dataset.v, de: '', ate: ''})));
+document.querySelectorAll('.mb-atrib').forEach((b) => b.addEventListener('click', () => dash.setParams({atrib: b.dataset.v})));
 document.querySelectorAll('.mb-perfil').forEach((b) => b.addEventListener('click', () => dash.setParams({perfil: b.dataset.v})));
 const lerDatas = () => {
   const de = document.getElementById('f-de'), ate = document.getElementById('f-ate');
@@ -12,6 +13,7 @@ dash.onData(() => {
   const p = dash.params(), pf = p.perfil || 'todos';
   document.querySelectorAll('.mb-per').forEach((b) => b.setAttribute('aria-pressed', String(p.periodo !== 'custom' && String(p.periodo || '30') === b.dataset.v)));
   const sm = document.getElementById('f-mes'); if (sm) sm.value = /^mes:/.test(p.periodo || '') ? p.periodo : '';
+  document.querySelectorAll('.mb-atrib').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === (p.atrib === 'equipe' ? 'equipe' : 'anuncio'))));
   document.querySelectorAll('.mb-perfil').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === pf)));
   const j = dash.data('janela');
   if (j.status === 'ok' && j.data && j.data[0]) {
@@ -221,3 +223,4 @@ dash.draw('travadas', (tb) => {
     tr.insertCell().textContent = MB.dm(r.entrou); tr.insertCell().textContent = r.canal; tr.insertCell().textContent = r.loja || '—'; tr.insertCell().textContent = r.resp || '—'; });
   if (l.length > 80) { const td = tb.insertRow().insertCell(); td.colSpan = 7; td.className = 'muted'; td.textContent = '+ ' + (l.length - 80) + ' leads paradas não mostradas.'; }
 });
+dash.draw('f-regra', (el) => { el.textContent = dash.params().atrib === 'equipe' ? 'origem Meta/LP/WhatsApp (visão da equipe, inclui WhatsApp orgânico)' : 'só leads que vieram de anúncio (formulário Meta, LP, WhatsApp de anúncio, UTM ou fbclid)'; });

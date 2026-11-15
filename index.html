@@ -42,6 +42,7 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 .linha-total td{font-weight:700;border-top:2px solid currentColor}
 .tbl-rodape{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;margin-top:8px;font-size:var(--cds-font-size-caption,12px)}
 .tbl-rodape label{cursor:pointer;display:flex;gap:6px;align-items:center}
+.seg.mini{margin:4px 0}.seg.mini button{font-size:11px;padding:2px 8px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script src="/dash.js"></script>
@@ -119,13 +120,13 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     <div class='card kpi' id='k-leads'><span class='lbl'>Leads</span><span class='val' data-draw='k-leads'>—</span><span class='note'><span data-draw='k-var-leads'>—</span> vs. período anterior (<span data-draw='k-ant'>—</span>)</span></div>
     <div class='card kpi' id='k-aprov'><span class='lbl'>Aprovadas ou além</span><span class='val' data-draw='k-aprov'>—</span><span class='note'><span data-draw='k-taxa'>—</span> dos leads</span></div>
     <div class='card kpi' id='k-opor'><span class='lbl'>Oportunidades ou além</span><span class='val' data-draw='k-opor'>—</span><span class='note'>status 3 em diante</span></div>
-    <div class='card kpi' id='k-fech'><span class='lbl'>Fechadas no período</span><span class='val' data-draw='f-n'>—</span><span class='note'>pela data de compra · Meta/LP/WhatsApp · <span data-draw='f-lojas'>—</span><br>custo por fechada <b data-draw='f-custo'>—</b> · mensalidades <b data-draw='f-mensal'>—</b> · <span data-draw='f-total'>—</span> no total</span><details class='expo-det'><summary>ver marcas</summary><div data-draw='f-lista'></div><div class='muted' data-draw='f-outras'></div></details></div>
+    <div class='card kpi' id='k-fech'><span class='lbl'>Fechadas no período</span><span class='seg mini' role='group' aria-label='Atribuição'><button type='button' class='mb-atrib' data-v='anuncio'>Só anúncio</button><button type='button' class='mb-atrib' data-v='equipe'>Visão equipe</button></span><span class='val' data-draw='f-n'>—</span><span class='note'>pela data de compra · <span data-draw='f-regra'>—</span> · <span data-draw='f-lojas'>—</span><br>custo por fechada <b data-draw='f-custo'>—</b> · mensalidades <b data-draw='f-mensal'>—</b> · <span data-draw='f-total'>—</span> no total</span><details class='expo-det'><summary>ver marcas</summary><div data-draw='f-lista'></div><div class='muted' data-draw='f-outras'></div></details></div>
     <div class='card kpi' id='k-expo'><span class='lbl'>Leads do período que viraram expositoras</span><span class='val' data-draw='k-expo'>—</span><span class='note'>dos leads que entraram no período</span><details class='expo-det'><summary>ver marcas</summary><div data-draw='k-expo-lista'></div></details></div>
   </section>
 
   <section class='card' id='ciclo'>
     <h2>Do cadastro à compra — quanto tempo as novas leads levam para virar expositoras</h2>
-    <p class='sub'>Fechadas no período (data de compra, origem Meta/LP/WhatsApp) cuja lead entrou no Airtable até 90 dias antes. Retornos de marcas antigas ficam fora da média. Verde = até 7 dias · laranja = mais de 30.</p>
+    <p class='sub'>Fechadas no período (data de compra, mesma regra do botão Só anúncio / Visão equipe) cuja lead entrou no Airtable até 90 dias antes. Retornos de marcas antigas ficam fora da média. Verde = até 7 dias · laranja = mais de 30.</p>
     <div data-draw='ciclo'>—</div>
   </section>
 
