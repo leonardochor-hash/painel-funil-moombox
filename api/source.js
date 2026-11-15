@@ -20,7 +20,9 @@ const WINDSOR = {
 const AIRTABLE = {
   base: 'appJ6JOQgEdIDNnVJ',
   table: 'tblm3WZMjzes3aM5S',
-  fields: ['fldGmvhtiErEDHSeo','fldFhpivgeWlIub5l','fldt8Pj7VHxWbbgDm','fldEdfZ5bPcKBGBHW','fldUJ54qkweyo7OPs','fld1SSKpuN5VrcImt','fldyMup9Yv7HAQaSZ','fld9NMnockPfCJZpC','fldkoenYwt0J9R1OL','fldaXA9qR2IBmRMjx'],
+  fields: ['fldGmvhtiErEDHSeo','fldFhpivgeWlIub5l','fldt8Pj7VHxWbbgDm','fldEdfZ5bPcKBGBHW','fldUJ54qkweyo7OPs','fld1SSKpuN5VrcImt','fldyMup9Yv7HAQaSZ','fld9NMnockPfCJZpC','fldkoenYwt0J9R1OL','fldaXA9qR2IBmRMjx','fldiBu74XwR7prwPh','fldsbPhELYcSRBLM2','fldoUvnydMjJgmdzk'],
+  compra: 'fldiBu74XwR7prwPh',
+  viewCompras: 'viw58ZADOmkx0MoYW',
   dia: 'fldEdfZ5bPcKBGBHW',
   status: 'fldFhpivgeWlIub5l',
 };
@@ -36,33 +38,39 @@ function autorizado(req) {
   return temCookie(req, senha);
 }
 
-const diaSP = (iso) => new Date(iso).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+const diaSP = (v) => (/T/.test(String(v)) ? new Date(v).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }) : String(v).slice(0, 10));
 
 async function airtable() {
   const key = String(process.env.AIRTABLE_TOKEN || '').trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '');
   if (!key) throw new Error('Falta a variável AIRTABLE_TOKEN na Vercel.');
-  const records = [];
-  let offset = '';
-  for (let i = 0; i < 40; i++) {
-    const u = new URL(`https://api.airtable.com/v0/${AIRTABLE.base}/${AIRTABLE.table}`);
-    u.searchParams.set('returnFieldsByFieldId', 'true');
-    u.searchParams.set('pageSize', '100');
-    u.searchParams.set('filterByFormula', "IS_AFTER(CREATED_TIME(), DATEADD(TODAY(), -91, 'days'))");
-    AIRTABLE.fields.forEach((f) => u.searchParams.append('fields[]', f));
-    if (offset) u.searchParams.set('offset', offset);
-    const r = await fetch(u, { headers: { Authorization: 'Bearer ' + key } });
-    const j = await r.json();
-    if (!r.ok) throw new Error('Airtable: ' + ((j.error && (j.error.message || j.error.type)) || r.status) + (r.status === 401 ? ' (token inválido: confira se colou o token inteiro, com a parte depois do ponto)' : ''));
-    for (const rec of j.records || []) {
-      const c = Object.assign({}, rec.fields);
-      if (c[AIRTABLE.dia]) c[AIRTABLE.dia] = diaSP(c[AIRTABLE.dia]);
-      if (typeof c[AIRTABLE.status] === 'string') c[AIRTABLE.status] = { name: c[AIRTABLE.status] };
-      records.push({ id: rec.id, createdTime: rec.createdTime, cellValuesByFieldId: c });
+  const porId = new Map();
+  // 1) leads criados nos últimos 91 dias; 2) todas as marcas com data de compra (visão "📊 Purchase All")
+  const pegar = async (extra) => {
+    let offset = '';
+    for (let i = 0; i < 40; i++) {
+      const u = new URL(`https://api.airtable.com/v0/${AIRTABLE.base}/${AIRTABLE.table}`);
+      u.searchParams.set('returnFieldsByFieldId', 'true');
+      u.searchParams.set('pageSize', '100');
+      Object.entries(extra).forEach(([k, v]) => u.searchParams.set(k, v));
+      AIRTABLE.fields.forEach((f) => u.searchParams.append('fields[]', f));
+      if (offset) u.searchParams.set('offset', offset);
+      const r = await fetch(u, { headers: { Authorization: 'Bearer ' + key } });
+      const j = await r.json();
+      if (!r.ok) throw new Error('Airtable: ' + ((j.error && (j.error.message || j.error.type)) || r.status) + (r.status === 401 ? ' (token inválido: confira se colou o token inteiro, com a parte depois do ponto)' : ''));
+      for (const rec of j.records || []) {
+        const c = Object.assign({}, rec.fields);
+        if (c[AIRTABLE.dia]) c[AIRTABLE.dia] = diaSP(c[AIRTABLE.dia]);
+        if (c[AIRTABLE.compra]) c[AIRTABLE.compra] = diaSP(c[AIRTABLE.compra]);
+        if (typeof c[AIRTABLE.status] === 'string') c[AIRTABLE.status] = { name: c[AIRTABLE.status] };
+        porId.set(rec.id, { id: rec.id, createdTime: rec.createdTime, cellValuesByFieldId: c });
+      }
+      offset = j.offset;
+      if (!offset) break;
     }
-    offset = j.offset;
-    if (!offset) break;
-  }
-  records.sort((a, b) => String(b.createdTime).localeCompare(String(a.createdTime)));
+  };
+  await pegar({ filterByFormula: "IS_AFTER(CREATED_TIME(), DATEADD(TODAY(), -91, 'days'))" });
+  await pegar({ view: AIRTABLE.viewCompras });
+  const records = [...porId.values()].sort((a, b) => String(b.createdTime).localeCompare(String(a.createdTime)));
   return { records };
 }
 

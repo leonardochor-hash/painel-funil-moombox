@@ -4,10 +4,14 @@ const lerDatas = () => {
   const de = document.getElementById('f-de'), ate = document.getElementById('f-ate');
   if (de && ate && de.value && de.validity.valid && ate.value && ate.validity.valid) dash.setParams({periodo: 'custom', de: de.value, ate: ate.value});
 };
+(() => { const sm = document.getElementById('f-mes'); if (!sm) return; const n = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'], h = new Date();
+  for (let i = 0; i < 3; i++) { const d = new Date(h.getFullYear(), h.getMonth() - i, 1), v = 'mes:' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); const o = document.createElement('option'); o.value = v; o.textContent = n[d.getMonth()] + '/' + String(d.getFullYear()).slice(2) + (i === 0 ? ' (até hoje)' : ''); sm.append(o); }
+  sm.addEventListener('change', () => { if (sm.value) dash.setParams({periodo: sm.value, de: '', ate: ''}); }); })();
 document.querySelectorAll('.mb-date').forEach((el) => el.addEventListener('change', lerDatas));
 dash.onData(() => {
   const p = dash.params(), pf = p.perfil || 'todos';
   document.querySelectorAll('.mb-per').forEach((b) => b.setAttribute('aria-pressed', String(p.periodo !== 'custom' && String(p.periodo || '30') === b.dataset.v)));
+  const sm = document.getElementById('f-mes'); if (sm) sm.value = /^mes:/.test(p.periodo || '') ? p.periodo : '';
   document.querySelectorAll('.mb-perfil').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === pf)));
   const j = dash.data('janela');
   if (j.status === 'ok' && j.data && j.data[0]) {
@@ -165,4 +169,7 @@ const listaExpo = (src, name) => dash.draw(name, (el) => {
     li.append(b, m); el.append(li);
   });
 });
-listaExpo('kpis', 'k-expo-lista'); listaExpo('custos', 'c-expo-lista');
+listaExpo('kpis', 'k-expo-lista'); listaExpo('custos', 'c-expo-lista'); listaExpo('fechadas', 'f-lista');
+campo('fechadas', 'f-n', 'fechadas', MB.int); campo('fechadas', 'f-total', 'fechadas_total', MB.int); campo('fechadas', 'f-custo', 'custo', MB.brl); campo('fechadas', 'f-mensal', 'mensal', MB.brl);
+dash.draw('f-lojas', (el) => { const k = dash.data('fechadas'); el.textContent = (k.status === 'ok' && k.data[0] && k.data[0].lojas) || '—'; });
+dash.draw('f-outras', (el) => { const k = dash.data('fechadas'), l = (k.status === 'ok' && k.data[0] && k.data[0].outras_lista) || []; el.textContent = l.length ? 'Outras origens: ' + l.map((r) => r.marca + ' (' + r.canal + ')').join(', ') : ''; });

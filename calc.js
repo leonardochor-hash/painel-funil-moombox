@@ -4,15 +4,15 @@ dash.loader('leads', {
     if (answer && answer.error) throw new Error(answer.error.message || String(answer.error));
     const pages = [answer]; let a = answer, n = 0;
     while (a && a.nextCursor && n < 8) { a = await call('list_records_for_table', Object.assign({}, args, {cursor: a.nextCursor})); pages.push(a); n++; }
-    const F = {marca:'fldGmvhtiErEDHSeo', status:'fldFhpivgeWlIub5l', origem:'fldt8Pj7VHxWbbgDm', dia:'fldEdfZ5bPcKBGBHW', utm_campaign:'fldUJ54qkweyo7OPs', utm_medium:'fld1SSKpuN5VrcImt', utm_content:'fldyMup9Yv7HAQaSZ', obs:'fld9NMnockPfCJZpC', fbclid:'fldkoenYwt0J9R1OL', qualificado:'fldaXA9qR2IBmRMjx'};
+    const F = {marca:'fldGmvhtiErEDHSeo', status:'fldFhpivgeWlIub5l', origem:'fldt8Pj7VHxWbbgDm', dia:'fldEdfZ5bPcKBGBHW', utm_campaign:'fldUJ54qkweyo7OPs', utm_medium:'fld1SSKpuN5VrcImt', utm_content:'fldyMup9Yv7HAQaSZ', obs:'fld9NMnockPfCJZpC', fbclid:'fldkoenYwt0J9R1OL', qualificado:'fldaXA9qR2IBmRMjx', compra:'fldiBu74XwR7prwPh', loja:'fldsbPhELYcSRBLM2', mensal:'fldoUvnydMjJgmdzk'};
     const rows = [];
     for (const p of pages) for (const r of ((p && p.records) || [])) {
       const c = r.cellValuesByFieldId || {};
       rows.push({id: r.id, dia: c[F.dia] || '', marca: String(c[F.marca] || '').trim(), status: String((c[F.status] && c[F.status].name) || '').trim(),
         origem: String(c[F.origem] || '').trim(), utm_campaign: String(c[F.utm_campaign] || ''), utm_medium: String(c[F.utm_medium] || ''), utm_content: String(c[F.utm_content] || ''),
-        observacoes: String(c[F.obs] || ''), tem_fbclid: c[F.fbclid] ? 'sim' : 'não', qualificado_em: c[F.qualificado] || '', criado_em: r.createdTime});
+        observacoes: String(c[F.obs] || ''), tem_fbclid: c[F.fbclid] ? 'sim' : 'não', qualificado_em: c[F.qualificado] || '', criado_em: r.createdTime, compra: String(c[F.compra] || '').slice(0, 10), loja: String((c[F.loja] && c[F.loja].name) || c[F.loja] || ''), mensalidade: +c[F.mensal] || 0});
     }
-    return {rows, columns: ['id','dia','marca','status','origem','utm_campaign','utm_medium','utm_content','observacoes','tem_fbclid','qualificado_em','criado_em'], truncated: !!(a && a.nextCursor)};
+    return {rows, columns: ['id','dia','marca','status','origem','utm_campaign','utm_medium','utm_content','observacoes','tem_fbclid','qualificado_em','criado_em','compra','loja','mensalidade'], truncated: !!(a && a.nextCursor)};
   }
 });
 const windsorLoader = (cols, map) => async ({answer, call, args}) => {
@@ -96,9 +96,10 @@ dash.calc('janela', {
     let de, ate;
     if (p.periodo === 'custom' && p.de && p.ate) { de = d3.timeParse('%Y-%m-%d')(p.de); ate = d3.timeParse('%Y-%m-%d')(p.ate); if (de > ate) [de, ate] = [ate, de]; }
     else if (p.periodo === 'ontem') { de = ate = d3.timeDay.offset(hoje, -1); }
+    else if (/^mes:\d{4}-\d{2}$/.test(p.periodo || '')) { de = d3.timeParse('%Y-%m-%d')(p.periodo.slice(4) + '-01'); ate = d3.timeDay.offset(d3.timeMonth.offset(de, 1), -1); if (ate > hoje) ate = hoje; }
     else { const n = +p.periodo || 30; ate = hoje; de = d3.timeDay.offset(hoje, -(n - 1)); }
     const dias = d3.timeDay.count(de, ate) + 1;
-    return [{periodo: p.periodo === 'custom' ? 'custom' : String(p.periodo || '30'), perfil: p.perfil || 'todos', de: f(de), ate: f(ate), dias, ant_de: f(d3.timeDay.offset(de, -dias)), ant_ate: f(d3.timeDay.offset(de, -1))}];
+    return [{mes: /^mes:/.test(p.periodo || ''), periodo: p.periodo === 'custom' ? 'custom' : String(p.periodo || '30'), perfil: p.perfil || 'todos', de: f(de), ate: f(ate), dias, ant_de: f(d3.timeDay.offset(de, -dias)), ant_ate: f(d3.timeDay.offset(de, -1))}];
   }
 });
 dash.calc('todos', {
@@ -125,7 +126,7 @@ dash.calc('todos', {
         const e = etapa(r.status);
         return {id: r.id, dia: r.dia, canal: canal(r.origem), pago: ['Formulário Meta','Landing page','WhatsApp (anúncio)'].includes(canal(r.origem)) || /julia|lpns/i.test(r.utm_campaign + ' ' + r.utm_medium), etapa: e, aprov: ['aprovada','oportunidade','proposta','expositor'].includes(e), expo: e === 'expositor',
           perfil: /julia|lpns/i.test(r.utm_campaign + ' ' + r.utm_medium) ? 'julia' : 'moombox', ad_id: ad, posicionamento: pos(pl),
-          status: r.status, utm_campaign: r.utm_campaign, utm_medium: r.utm_medium, utm_content: r.utm_content, marca: r.marca, origem: r.origem, criado_em: r.criado_em}; });
+          status: r.status, utm_campaign: r.utm_campaign, utm_medium: r.utm_medium, utm_content: r.utm_content, marca: r.marca, origem: r.origem, criado_em: r.criado_em, compra: r.compra || '', loja: r.loja || '', mensalidade: r.mensalidade || 0}; });
   }
 });
 dash.calc('base', {
@@ -305,6 +306,20 @@ dash.calc('sugestoes', {
     if (k.gasto > 20 && !k.leads) out.push(['Rastreio', 'R$ ' + Math.round(k.gasto) + ' investidos sem nenhum lead de anúncio no Airtable. Confira se os anúncios levam para a lpns.']);
     if (!out.length) out.push(['OK', 'Nenhum alerta no período.']);
     return out.map(([tipo, texto], n) => ({n: n + 1, tipo, texto}));
+  }
+});
+// Fechadas pela data de compra (campo Purchase), igual à visão "✅ Purchase (↑purchase) from Meta"
+dash.calc('fechadas', {
+  inputs: ['todos', 'meta_ads', 'janela'],
+  fn: (todos, ads, janela) => {
+    const j = janela[0], okStatus = (s) => /^(6 - |7 - )/.test(s) || /^X - Exp Aviso/.test(s) || s === 'X - Ex Expositor';
+    const l = todos.filter((r) => r.compra && r.compra >= j.de && r.compra <= j.ate && okStatus(r.status) && (j.perfil === 'todos' || r.perfil === j.perfil))
+      .map((r) => ({marca: r.marca, dia: r.compra, entrou: r.dia, status: r.status, canal: r.canal, origem: r.origem, loja: r.loja, mensalidade: r.mensalidade, ads: /meta|whats|land/i.test(r.origem)}));
+    const ad = l.filter((r) => r.ads), g = d3.sum(PF(ads).filter((r) => r.data >= j.de && r.data <= j.ate), (r) => r.gasto);
+    const por = (k) => d3.rollups(ad, (v) => v.length, (r) => r.loja || 's/ loja').sort((a, b) => b[1] - a[1]).map(([lj, n]) => lj + ' ' + n).join(' · ');
+    return [{fechadas: ad.length, fechadas_total: l.length, custo: ad.length ? g / ad.length : null, lojas: por(), mensal: d3.sum(ad, (r) => r.mensalidade),
+      expo_lista: ad.map((r) => ({marca: r.marca, dia: r.dia, status: r.status, canal: r.canal + (r.loja ? ' · ' + r.loja : '') + (r.entrou ? ' · lead de ' + MB.dm(r.entrou) : '')})),
+      outras_lista: l.filter((r) => !r.ads).map((r) => ({marca: r.marca, dia: r.dia, status: r.status, canal: (r.origem || 'sem origem') + (r.loja ? ' · ' + r.loja : '')}))}];
   }
 });
 dash.calc('campanhas', {
