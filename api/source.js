@@ -1,5 +1,6 @@
 // Busca os dados de cada fonte do painel com as chaves guardadas na Vercel.
 // A senha do painel é checada aqui também (além do middleware).
+const { temCookie } = require('./_cookie');
 
 const ACC_MOOMBOX = '2868359933189609';
 const ACC_JULIA = '971157280803730';
@@ -7,11 +8,11 @@ const BOTH = [ACC_MOOMBOX, ACC_JULIA];
 
 const WINDSOR = {
   meta_ads: { accounts: BOTH, preset: 'last_90dT', fields: ['account_id','date','campaign','adset_name','adset_id','ad_name','ad_id','spend','impressions','link_clicks','actions_offsite_conversion_fb_pixel_lead','actions_lead'] },
-  meta_aparelho: { accounts: BOTH, preset: 'last_90dT', fields: ['account_id','date','impression_device','spend','impressions','link_clicks'] },
+  meta_aparelho: { accounts: BOTH, porConta: true, preset: 'last_90dT', fields: ['account_id','date','impression_device','spend','impressions','link_clicks'] },
   meta_conta: { accounts: BOTH, preset: 'last_7dT', fields: ['account_id','account_balance','amount_spent','spend_cap'] },
   meta_criativo: { accounts: BOTH, preset: 'last_90dT', fields: ['account_id','date','ad_id','reach','actions_landing_page_view','actions_video_view','video_p25_watched_actions_video_view','video_p50_watched_actions_video_view','video_p75_watched_actions_video_view','video_p100_watched_actions_video_view','video_thruplay_watched_actions_video_view','adset_daily_budget','campaign_daily_budget','effective_status'] },
   meta_fichas: { accounts: [ACC_MOOMBOX], preset: 'last_14dT', fields: ['ad_id','ad_name','adset_name','campaign','adset_targeting','adset_destination_type','adsset_optimization_goal','effective_status','ad_created_time','instagram_permalink_url','video_avg_time_watched_actions_video_view','spend'], filter: [['spend','gt',5]] },
-  meta_hora: { accounts: BOTH, preset: 'last_90dT', fields: ['account_id','date','hourly_stats_aggregated_by_audience_time_zone','spend','impressions','link_clicks'] },
+  meta_hora: { accounts: BOTH, porConta: true, preset: 'last_90dT', fields: ['account_id','date','hourly_stats_aggregated_by_audience_time_zone','spend','impressions','link_clicks'] },
   meta_idade: { accounts: BOTH, preset: 'last_90dT', fields: ['account_id','date','age','spend','impressions','link_clicks'] },
   meta_plac: { accounts: BOTH, preset: 'last_90dT', fields: ['account_id','date','adset_name','ad_id','publisher_platform','platform_position','spend','impressions','link_clicks'] },
 };
@@ -32,8 +33,7 @@ function autorizado(req) {
     const dec = Buffer.from(h.slice(6), 'base64').toString();
     if (dec.split(':').slice(1).join(':') === senha) return true;
   }
-  const c = req.headers.cookie || '';
-  return c.split(';').some((p) => p.trim() === 'painel=' + encodeURIComponent(senha));
+  return temCookie(req, senha);
 }
 
 const diaSP = (iso) => new Date(iso).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
@@ -89,7 +89,11 @@ module.exports = async (req, res) => {
   try {
     let out;
     if (id === 'leads') out = await airtable();
-    else if (WINDSOR[id]) out = await windsor(WINDSOR[id]);
+    else if (WINDSOR[id] && WINDSOR[id].porConta) {
+      // Aparelho e hora voltam vazios quando as duas contas vão juntas: busca uma conta por vez e junta.
+      const partes = await Promise.all(WINDSOR[id].accounts.map((a) => windsor(Object.assign({}, WINDSOR[id], { accounts: [a] })).catch(() => ({ data: [] }))));
+      out = { data: partes.flatMap((p) => p.data) };
+    } else if (WINDSOR[id]) out = await windsor(WINDSOR[id]);
     else { res.status(404).json({ error: { message: 'Fonte desconhecida: ' + id } }); return; }
     res.setHeader('Cache-Control', 'private, max-age=300');
     res.status(200).json(out);
