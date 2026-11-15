@@ -179,7 +179,9 @@ dash.calc('canais', {
         oportunidades: v.filter((r) => ['oportunidade','proposta','expositor'].includes(r.etapa)).length,
         expositores: v.filter((r) => r.expo).length,
         parados: v.filter((r) => r.etapa === 'entrada').length,
-        perdidos: v.filter((r) => r.etapa === 'perdida').length};
+        perdidos: v.filter((r) => r.etapa === 'perdida').length,
+        expo_marcas: v.filter((r) => r.expo).map((r) => r.marca + ' — ' + (r.origem || 'sem origem') + ' (entrou ' + MB.dm(r.dia) + ')').join('\n'),
+        origens: d3.rollups(v, (x) => x.length, (r) => r.origem || 'sem origem').sort((a, b) => b[1] - a[1]).map(([o, n]) => n + '× ' + o).join('\n')};
     }, (r) => r.canal).map(([canal, o]) => Object.assign({canal}, o)).sort((a, b) => b.leads - a.leads)
 });
 dash.calc('diario', {
