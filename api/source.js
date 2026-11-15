@@ -39,7 +39,7 @@ function autorizado(req) {
 const diaSP = (iso) => new Date(iso).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
 
 async function airtable() {
-  const key = process.env.AIRTABLE_TOKEN;
+  const key = String(process.env.AIRTABLE_TOKEN || '').trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '');
   if (!key) throw new Error('Falta a variável AIRTABLE_TOKEN na Vercel.');
   const records = [];
   let offset = '';
@@ -52,7 +52,7 @@ async function airtable() {
     if (offset) u.searchParams.set('offset', offset);
     const r = await fetch(u, { headers: { Authorization: 'Bearer ' + key } });
     const j = await r.json();
-    if (!r.ok) throw new Error('Airtable: ' + ((j.error && (j.error.message || j.error.type)) || r.status));
+    if (!r.ok) throw new Error('Airtable: ' + ((j.error && (j.error.message || j.error.type)) || r.status) + (r.status === 401 ? ' (token inválido; o token começa com "pat"? ' + key.slice(0, 3) + '…, ' + key.length + ' caracteres)' : ''));
     for (const rec of j.records || []) {
       const c = Object.assign({}, rec.fields);
       if (c[AIRTABLE.dia]) c[AIRTABLE.dia] = diaSP(c[AIRTABLE.dia]);
@@ -67,7 +67,7 @@ async function airtable() {
 }
 
 async function windsor(cfg) {
-  const key = process.env.WINDSOR_API_KEY;
+  const key = String(process.env.WINDSOR_API_KEY || '').trim();
   if (!key) throw new Error('Falta a variável WINDSOR_API_KEY na Vercel.');
   const u = new URL('https://connectors.windsor.ai/facebook');
   u.searchParams.set('api_key', key);
