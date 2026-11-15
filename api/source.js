@@ -52,7 +52,7 @@ async function airtable() {
     if (offset) u.searchParams.set('offset', offset);
     const r = await fetch(u, { headers: { Authorization: 'Bearer ' + key } });
     const j = await r.json();
-    if (!r.ok) throw new Error('Airtable: ' + ((j.error && (j.error.message || j.error.type)) || r.status) + (r.status === 401 ? ' (token inválido; o token começa com "pat"? ' + key.slice(0, 3) + '…, ' + key.length + ' caracteres)' : ''));
+    if (!r.ok) throw new Error('Airtable: ' + ((j.error && (j.error.message || j.error.type)) || r.status) + (r.status === 401 ? ' (token inválido: confira se colou o token inteiro, com a parte depois do ponto)' : ''));
     for (const rec of j.records || []) {
       const c = Object.assign({}, rec.fields);
       if (c[AIRTABLE.dia]) c[AIRTABLE.dia] = diaSP(c[AIRTABLE.dia]);
