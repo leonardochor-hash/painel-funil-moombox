@@ -111,6 +111,9 @@ dash.calc('todos', {
       if (o === 'whatsapp ad') return 'WhatsApp (anúncio)';
       if (o.startsWith('whatsapp')) return 'WhatsApp (orgânico)';
       if (o.includes('instagram') || o.includes('bdr') || o.includes('rua teresa')) return 'Instagram / prospecção';
+      if (o.includes('painel de contratos')) return 'Painel de Contratos (origem não registrada)';
+      if (/rebeca|jakeline|julia|júlia|outbound|vivi|ligação|ligacao|adriana|samila|simone|kamilly|matheus|thiago|paula/.test(o)) return 'Captação ativa (equipe)';
+      if (/feira|indica/.test(o)) return 'Feiras e indicações';
       return o ? 'Outros' : 'Sem origem'; };
     const etapa = (s) => {
       if (/^7/.test(s)) return 'expositor';
@@ -164,8 +167,8 @@ dash.calc('custos', {
   fn: (ads, todos, janela) => {
     const j = janela[0]; ads = PF(ads);
     const soma = (de, ate) => { const a = ads.filter((r) => r.data >= de && r.data <= ate); const l = todos.filter((r) => PAGO(r, j.perfil) && r.dia >= de && r.dia <= ate);
-      const g = d3.sum(a, (r) => r.gasto), c = d3.sum(a, (r) => r.cliques), ap = l.filter((r) => r.aprov).length, ex = l.filter((r) => r.expo).length;
-      return {gasto: g, cliques: c, cpc: c ? g / c : null, leads: l.length, cpl: l.length ? g / l.length : null, aprovados: ap, custo_aprov: ap ? g / ap : null, expositores: ex, cac: ex ? g / ex : null, expo_lista: l.filter((r) => r.expo).map((r) => ({marca: r.marca, dia: r.dia, status: r.status, canal: r.canal}))}; };
+      const g = d3.sum(a, (r) => r.gasto), c = d3.sum(a, (r) => r.cliques), ap = l.filter((r) => r.aprov).length, op = l.filter((r) => ['oportunidade','proposta','expositor'].includes(r.etapa)).length, ex = l.filter((r) => r.expo).length;
+      return {gasto: g, cliques: c, cpc: c ? g / c : null, leads: l.length, cpl: l.length ? g / l.length : null, aprovados: ap, custo_aprov: ap ? g / ap : null, oportunidades: op, custo_opor: op ? g / op : null, expositores: ex, cac: ex ? g / ex : null, expo_lista: l.filter((r) => r.expo).map((r) => ({marca: r.marca, dia: r.dia, status: r.status, canal: r.canal}))}; };
     const at = soma(j.de, j.ate), an = soma(j.ant_de, j.ant_ate);
     const v = (x, y) => (x != null && y) ? x / y - 1 : null;
     return [Object.assign(at, {var_gasto: v(at.gasto, an.gasto), var_cpc: v(at.cpc, an.cpc)})];
@@ -278,7 +281,7 @@ dash.calc('funil_midia', {
   fn: (ads, cri, leads) => {
     const g = d3.sum(ads, (r) => r.gasto);
     const E = [['Impressões', d3.sum(ads, (r) => r.impressoes)], ['Alcance (soma diária)', d3.sum(cri, (r) => r.alcance)], ['Assistiram 3s+', d3.sum(cri, (r) => r.v3s)], ['Cliques no link', d3.sum(ads, (r) => r.cliques)],
-      ['Visitas à página', d3.sum(cri, (r) => r.visitas)], ['Leads (Airtable)', leads.length], ['Aprovadas ou além', leads.filter((r) => r.aprov).length], ['Expositoras', leads.filter((r) => r.expo).length]];
+      ['Visitas à página', d3.sum(cri, (r) => r.visitas)], ['Leads (Airtable)', leads.length], ['Aprovadas ou além', leads.filter((r) => r.aprov).length], ['Oportunidades ou além', leads.filter((r) => ['oportunidade','proposta','expositor'].includes(r.etapa)).length], ['Expositoras', leads.filter((r) => r.expo).length]];
     return E.map(([etapa, valor], i) => ({etapa, valor, pct: i && E[i - 1][1] ? valor / E[i - 1][1] : null, custo: i && valor ? g / valor : null}));
   }
 });

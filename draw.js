@@ -44,7 +44,7 @@ campo('kpis', 't-moo', 'leads_moombox', MB.int); campo('kpis', 't-jul', 'leads_j
 campo('kpis', 'k-leads', 'leads', MB.int); campo('kpis', 'k-ant', 'leads_ant', MB.int); varia('kpis', 'k-var-leads', 'var_leads', false);
 campo('kpis', 'k-aprov', 'aprovados', MB.int); campo('kpis', 'k-taxa', 'taxa_aprov', MB.pct); campo('kpis', 'k-opor', 'oportunidades', MB.int); campo('kpis', 'k-expo', 'expositores', MB.int);
 campo('custos', 'c-gasto', 'gasto', MB.brl); varia('custos', 'c-var-gasto', 'var_gasto', false); campo('custos', 'c-cpc', 'cpc', MB.brl); campo('custos', 'c-cliques', 'cliques', MB.int); varia('custos', 'c-var-cpc', 'var_cpc', true);
-campo('custos', 'c-cpl', 'cpl', MB.brl); campo('custos', 'c-leads', 'leads', MB.int); campo('custos', 'c-cpa', 'custo_aprov', MB.brl); campo('custos', 'c-aprov', 'aprovados', MB.int); campo('custos', 'c-cac', 'cac', MB.brl); campo('custos', 'c-expo', 'expositores', MB.int);
+campo('custos', 'c-cpl', 'cpl', MB.brl); campo('custos', 'c-leads', 'leads', MB.int); campo('custos', 'c-cpa', 'custo_aprov', MB.brl); campo('custos', 'c-aprov', 'aprovados', MB.int); campo('custos', 'c-cac', 'cac', MB.brl); campo('custos', 'c-cop', 'custo_opor', MB.brl); campo('custos', 'c-opor', 'oportunidades', MB.int); campo('custos', 'c-expo', 'expositores', MB.int);
 
 const msgStatus = (d, vazio) => d.status === 'ok' ? vazio : d.status === 'error' ? 'Falhou ao carregar: ' + (d.message || '') : 'Carregando…';
 const tabela = (name, src, cols) => dash.draw(name, (tb) => {
@@ -223,4 +223,4 @@ dash.draw('travadas', (tb) => {
     tr.insertCell().textContent = MB.dm(r.entrou); tr.insertCell().textContent = r.canal; tr.insertCell().textContent = r.loja || '—'; tr.insertCell().textContent = r.resp || '—'; });
   if (l.length > 80) { const td = tb.insertRow().insertCell(); td.colSpan = 7; td.className = 'muted'; td.textContent = '+ ' + (l.length - 80) + ' leads paradas não mostradas.'; }
 });
-dash.draw('f-regra', (el) => { el.textContent = dash.params().atrib === 'equipe' ? 'origem Meta/LP/WhatsApp (visão da equipe, inclui WhatsApp orgânico)' : 'só leads que vieram de anúncio (formulário Meta, LP, WhatsApp de anúncio, UTM ou fbclid)'; });
+dash.draw('f-regra', (el) => { el.textContent = dash.params().atrib === 'equipe' ? 'todas com origem Meta, LP ou WhatsApp (inclui WhatsApp orgânico — mesma regra da visão Purchase do Airtable)' : 'só leads que vieram de anúncio (formulário Meta, LP, WhatsApp de anúncio, UTM ou fbclid)'; });
