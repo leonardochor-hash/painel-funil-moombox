@@ -210,6 +210,15 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
     </table></div>
   </section>
 
+  <section class='card' id='reprovados-origem'>
+    <h2>Reprovados por origem</h2>
+    <p class='sub'>Status “X - Reprovado” dos leads que entraram no período, por canal, campanha e anúncio (UTM). Passe o mouse em Reprovados para ver as marcas e o faturamento declarado. “Fatur. baixo” = ainda não vende, até R$ 5 mil ou sem resposta.</p>
+    <div class='tbl'><table>
+      <thead><tr><th>Canal</th><th>Campanha / anúncio</th><th>Leads</th><th>Reprovados</th><th>% reprov.</th><th>Fatur. baixo</th><th>Faturamento mais comum</th><th>Aprovadas+</th><th>Não interess.</th></tr></thead>
+      <tbody data-draw='reprovados'></tbody>
+    </table></div>
+  </section>
+
   <section class='card' id='por-dia'>
     <h2>Leads por dia × gasto em anúncios</h2>
     <div class='legend'><span><i id='lg-leads'></i>Leads no Airtable (filtro de perfil)</span><span><i id='lg-gasto'></i>Gasto Meta (R$, filtro de perfil)</span></div>

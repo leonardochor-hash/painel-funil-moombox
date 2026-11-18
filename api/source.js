@@ -20,7 +20,7 @@ const WINDSOR = {
 const AIRTABLE = {
   base: 'appJ6JOQgEdIDNnVJ',
   table: 'tblm3WZMjzes3aM5S',
-  fields: ['fldGmvhtiErEDHSeo','fldFhpivgeWlIub5l','fldt8Pj7VHxWbbgDm','fldEdfZ5bPcKBGBHW','fldUJ54qkweyo7OPs','fld1SSKpuN5VrcImt','fldyMup9Yv7HAQaSZ','fld9NMnockPfCJZpC','fldkoenYwt0J9R1OL','fldaXA9qR2IBmRMjx','fldiBu74XwR7prwPh','fldsbPhELYcSRBLM2','fldoUvnydMjJgmdzk','fldwoqgb4B9XpFN1g','fldZq7UOcqcoZlOoQ'],
+  fields: ['fldGmvhtiErEDHSeo','fldFhpivgeWlIub5l','fldt8Pj7VHxWbbgDm','fldEdfZ5bPcKBGBHW','fldUJ54qkweyo7OPs','fld1SSKpuN5VrcImt','fldyMup9Yv7HAQaSZ','fld9NMnockPfCJZpC','fldkoenYwt0J9R1OL','fldaXA9qR2IBmRMjx','fldiBu74XwR7prwPh','fldsbPhELYcSRBLM2','fldoUvnydMjJgmdzk','fldwoqgb4B9XpFN1g','fldZq7UOcqcoZlOoQ','fldolNklr091unulM'],
   mudou: 'fldwoqgb4B9XpFN1g',
   compra: 'fldiBu74XwR7prwPh',
   viewCompras: 'viw58ZADOmkx0MoYW',

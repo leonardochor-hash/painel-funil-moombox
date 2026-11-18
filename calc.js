@@ -4,15 +4,15 @@ dash.loader('leads', {
     if (answer && answer.error) throw new Error(answer.error.message || String(answer.error));
     const pages = [answer]; let a = answer, n = 0;
     while (a && a.nextCursor && n < 8) { a = await call('list_records_for_table', Object.assign({}, args, {cursor: a.nextCursor})); pages.push(a); n++; }
-    const F = {marca:'fldGmvhtiErEDHSeo', status:'fldFhpivgeWlIub5l', origem:'fldt8Pj7VHxWbbgDm', dia:'fldEdfZ5bPcKBGBHW', utm_campaign:'fldUJ54qkweyo7OPs', utm_medium:'fld1SSKpuN5VrcImt', utm_content:'fldyMup9Yv7HAQaSZ', obs:'fld9NMnockPfCJZpC', fbclid:'fldkoenYwt0J9R1OL', qualificado:'fldaXA9qR2IBmRMjx', compra:'fldiBu74XwR7prwPh', loja:'fldsbPhELYcSRBLM2', mensal:'fldoUvnydMjJgmdzk', mudou:'fldwoqgb4B9XpFN1g', resp:'fldZq7UOcqcoZlOoQ'};
+    const F = {marca:'fldGmvhtiErEDHSeo', status:'fldFhpivgeWlIub5l', origem:'fldt8Pj7VHxWbbgDm', dia:'fldEdfZ5bPcKBGBHW', utm_campaign:'fldUJ54qkweyo7OPs', utm_medium:'fld1SSKpuN5VrcImt', utm_content:'fldyMup9Yv7HAQaSZ', obs:'fld9NMnockPfCJZpC', fbclid:'fldkoenYwt0J9R1OL', qualificado:'fldaXA9qR2IBmRMjx', compra:'fldiBu74XwR7prwPh', loja:'fldsbPhELYcSRBLM2', mensal:'fldoUvnydMjJgmdzk', mudou:'fldwoqgb4B9XpFN1g', resp:'fldZq7UOcqcoZlOoQ', fat:'fldolNklr091unulM'};
     const rows = [];
     for (const p of pages) for (const r of ((p && p.records) || [])) {
       const c = r.cellValuesByFieldId || {};
       rows.push({id: r.id, dia: c[F.dia] || '', marca: String(c[F.marca] || '').trim(), status: String((c[F.status] && c[F.status].name) || '').trim(),
         origem: String(c[F.origem] || '').trim(), utm_campaign: String(c[F.utm_campaign] || ''), utm_medium: String(c[F.utm_medium] || ''), utm_content: String(c[F.utm_content] || ''),
-        observacoes: String(c[F.obs] || ''), tem_fbclid: c[F.fbclid] ? 'sim' : 'não', qualificado_em: c[F.qualificado] || '', criado_em: r.createdTime, compra: String(c[F.compra] || '').slice(0, 10), loja: String((c[F.loja] && c[F.loja].name) || c[F.loja] || ''), mensalidade: +c[F.mensal] || 0, mudou: String(c[F.mudou] || '').slice(0, 10), resp: (Array.isArray(c[F.resp]) ? c[F.resp] : []).map((u) => (u && (u.name || u.email)) || '').filter(Boolean).join(', ')});
+        observacoes: String(c[F.obs] || ''), tem_fbclid: c[F.fbclid] ? 'sim' : 'não', qualificado_em: c[F.qualificado] || '', criado_em: r.createdTime, compra: String(c[F.compra] || '').slice(0, 10), loja: String((c[F.loja] && c[F.loja].name) || c[F.loja] || ''), mensalidade: +c[F.mensal] || 0, mudou: String(c[F.mudou] || '').slice(0, 10), resp: (Array.isArray(c[F.resp]) ? c[F.resp] : []).map((u) => (u && (u.name || u.email)) || '').filter(Boolean).join(', '), faturamento: String((c[F.fat] && c[F.fat].name) || c[F.fat] || '')});
     }
-    return {rows, columns: ['id','dia','marca','status','origem','utm_campaign','utm_medium','utm_content','observacoes','tem_fbclid','qualificado_em','criado_em','compra','loja','mensalidade','mudou','resp'], truncated: !!(a && a.nextCursor)};
+    return {rows, columns: ['id','dia','marca','status','origem','utm_campaign','utm_medium','utm_content','observacoes','tem_fbclid','qualificado_em','criado_em','compra','loja','mensalidade','mudou','resp','faturamento'], truncated: !!(a && a.nextCursor)};
   }
 });
 const windsorLoader = (cols, map) => async ({answer, call, args}) => {
@@ -129,7 +129,7 @@ dash.calc('todos', {
         const e = etapa(r.status);
         return {id: r.id, dia: r.dia, canal: canal(r.origem), pago: ['Formulário Meta','Landing page','WhatsApp (anúncio)'].includes(canal(r.origem)) || /julia|lpns/i.test(r.utm_campaign + ' ' + r.utm_medium), etapa: e, aprov: ['aprovada','oportunidade','proposta','expositor'].includes(e), expo: e === 'expositor',
           perfil: /julia|lpns/i.test(r.utm_campaign + ' ' + r.utm_medium) ? 'julia' : 'moombox', ad_id: ad, posicionamento: pos(pl),
-          status: r.status, utm_campaign: r.utm_campaign, utm_medium: r.utm_medium, utm_content: r.utm_content, marca: r.marca, origem: r.origem, criado_em: r.criado_em, fbclid: r.tem_fbclid === 'sim', compra: r.compra || '', loja: r.loja || '', mensalidade: r.mensalidade || 0, mudou: r.mudou || '', resp: r.resp || ''}; });
+          status: r.status, utm_campaign: r.utm_campaign, utm_medium: r.utm_medium, utm_content: r.utm_content, marca: r.marca, origem: r.origem, criado_em: r.criado_em, fbclid: r.tem_fbclid === 'sim', compra: r.compra || '', loja: r.loja || '', mensalidade: r.mensalidade || 0, mudou: r.mudou || '', resp: r.resp || '', faturamento: r.faturamento || ''}; });
   }
 });
 dash.calc('base', {
@@ -359,6 +359,28 @@ dash.calc('campanhas', {
       .map(([campanha, o]) => { const g = G.get(campanha); return Object.assign({campanha}, o, {perfil: g ? g.perfil : null, campanha_ids: g ? g.ids : '', gasto: g ? g.gasto : null, cpc: g && g.cliques ? g.gasto / g.cliques : null, custo_aprov: g && o.aprovados ? g.gasto / o.aprovados : null, cac: g && o.expositores ? g.gasto / o.expositores : null}); });
     G.forEach((g, campanha) => { if (!rows.find((r) => r.campanha === campanha) && g.gasto > 0) rows.push({campanha, perfil: g.perfil, campanha_ids: g.ids, leads: 0, aprovados: 0, taxa_aprov: null, oportunidades: 0, expositores: 0, taxa_expo: null, gasto: g.gasto, cpc: g.cliques ? g.gasto / g.cliques : null, custo_aprov: null, cac: null}); });
     return rows.sort((a, b) => b.expositores - a.expositores || b.aprovados - a.aprovados || b.leads - a.leads);
+  }
+});
+
+dash.calc('reprovados', {
+  inputs: ['base'],
+  fn: (base) => {
+    const FAT = {'ainda_não_vendo': 'ainda não vende', 'até_r$_5_mil': 'até 5 mil', 'r$_5_mil_a_r$_10_mil': '5–10 mil', 'r$_10_mil_a_r$_30_mil': '10–30 mil', 'r$_30_mil_a_r$_100_mil': '30–100 mil', 'acima_de_r$_100_mil': '100 mil+'};
+    const fat = (f) => FAT[f] || (f ? f.replace(/_/g, ' ') : 'sem faturamento');
+    const norm = (c) => String(c || '').trim().replace(/^_moobox_/, '').replace(/[_-](facebook-instagram|instagram)__.*$/, '');
+    const camp = (r) => { const c = (r.utm_campaign || '').trim(); if (!c) return ''; if (c.includes('{{')) return '(UTM quebrada)'; if (/captacao-julia/i.test(c)) return 'Captação Julia NS'; return norm(c); };
+    const reprov = (r) => /^x\s*-\s*reprov/i.test(r.status);
+    const rows = d3.rollups(base, (v) => {
+      const rp = v.filter(reprov), ni = v.filter((r) => /^x\s*-\s*n[ãa]o interess/i.test(r.status)).length;
+      const fx = d3.rollups(rp, (x) => x.length, (r) => fat(r.faturamento)).sort((a, b) => b[1] - a[1]);
+      return {canal: v[0].canal, campanha: camp(v[0]), anuncio: v[0].utm_content ? MB.curto(v[0].utm_content) : '', leads: v.length, reprovados: rp.length, taxa_reprov: rp.length / v.length, nao_interessados: ni,
+        aprovados: v.filter((r) => r.aprov).length,
+        fat_resumo: fx.slice(0, 2).map(([f, n]) => f + ' (' + n + ')').join(' · '),
+        fat_baixo: rp.length ? rp.filter((r) => /ainda_não_vendo|até_r\$_5_mil|^$/.test(r.faturamento)).length / rp.length : null,
+        marcas: rp.map((r) => MB.dm(r.dia) + ' · ' + r.marca + ' · ' + fat(r.faturamento)).join('\n')};
+    }, (r) => r.canal + '|' + camp(r) + '|' + (r.utm_content ? MB.curto(r.utm_content) : ''))
+      .map(([k, o]) => o).filter((o) => o.reprovados > 0 || o.leads >= 3);
+    return rows.sort((a, b) => b.reprovados - a.reprovados || b.taxa_reprov - a.taxa_reprov);
   }
 });
 
