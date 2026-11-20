@@ -59,7 +59,7 @@ const tabela = (name, src, cols) => dash.draw(name, (tb) => {
 const TOTAIS = {
   reprovados: (l) => { const s = (k) => d3.sum(l, (r) => r[k] || 0), le = s('leads'), rp = s('reprovados'); return {_rotulo: 'Total', campanha: '', leads: le, reprovados: rp, taxa_reprov: le ? rp / le : null, fat_baixo: rp ? d3.sum(l, (r) => (r.fat_baixo || 0) * r.reprovados) / rp : null, fat_resumo: '', aprovados: s('aprovados'), nao_interessados: s('nao_interessados')}; },
   campanhas: (l) => { const s = (k) => d3.sum(l, (r) => r[k] || 0), g = s('gasto'), le = s('leads'), ap = s('aprovados'), ex = s('expositores'), cl = d3.sum(l, (r) => r.gasto && r.cpc ? r.gasto / r.cpc : 0);
-    return {_rotulo: 'Total · ' + l.length + ' campanha' + (l.length > 1 ? 's' : ''), leads: le, aprovados: ap, taxa_aprov: le ? ap / le : null, oportunidades: s('oportunidades'), expositores: ex, taxa_expo: le ? ex / le : null, gasto: g, cpc: cl ? g / cl : null, custo_aprov: ap ? g / ap : null, cac: ex ? g / ex : null}; }
+    return {_rotulo: 'Total · ' + l.length + ' campanha' + (l.length > 1 ? 's' : ''), leads: le, aprovados: ap, taxa_aprov: le ? ap / le : null, oportunidades: s('oportunidades'), expositores: ex, taxa_expo: le ? ex / le : null, gasto: g, cpc: cl ? g / cl : null, cpl: (() => { const lp = d3.sum(l, (r) => r.gasto > 0 ? r.leads || 0 : 0); return lp ? g / lp : null; })(), custo_aprov: ap ? g / ap : null, cac: ex ? g / ex : null}; }
 };
 document.querySelectorAll('.fx').forEach((el) => el.addEventListener('change', () => dash.setParams({})));
 dash.draw('confere-campanhas', (el) => {
@@ -136,7 +136,7 @@ tabela('criativos', 'criativos', [
 const linhaGrupo = () => [(td, r) => { td.textContent = String(r.grupo).replace(/^[0-9] /, ''); }, t(MB.brl, 'gasto'), t(MB.pct, 'pct_gasto'), t(MB.int, 'cliques'),
   (td, r) => { td.textContent = MB.pct(r.pct_cliques); if (r.pct_gasto && r.pct_cliques != null && r.pct_gasto - r.pct_cliques > 0.1) td.style.color = 'var(--color-bad)'; }, t(MB.pct, 'ctr'), t(MB.brl, 'cpc')];
 tabela('campanhas', 'campanhas', [(td, r) => { td.className = 'wrap'; if (r.campanha_ids) { td.append(MB.linkMeta(r.perfil, 'campaigns', r.campanha_ids, r.campanha, r.campanha)); const s = document.createElement('div'); s.className = 'muted'; s.style.fontSize = 'var(--cds-font-size-caption)'; s.textContent = r.perfil === 'julia' ? 'Julia' : 'Moombox'; td.append(s); } else td.textContent = r.campanha; }, t(MB.int, 'leads'), t(MB.int, 'aprovados'), t(MB.pct, 'taxa_aprov'), t(MB.int, 'oportunidades'),
-  (td, r) => { td.textContent = MB.int(r.expositores); if (r.expositores) td.style.fontWeight = '600'; }, t(MB.pct, 'taxa_expo'), t(MB.brl, 'gasto'), t(MB.brl, 'cpc'), t(MB.brl, 'custo_aprov'), t(MB.brl, 'cac')]);
+  (td, r) => { td.textContent = MB.int(r.expositores); if (r.expositores) td.style.fontWeight = '600'; }, t(MB.pct, 'taxa_expo'), t(MB.brl, 'gasto'), t(MB.brl, 'cpc'), (td, r) => { td.textContent = MB.brl(r.cpl !== undefined ? r.cpl : (r.gasto > 0 && r.leads ? r.gasto / r.leads : null)); }, t(MB.brl, 'custo_aprov'), t(MB.brl, 'cac')]);
 const COMP = [['gasto', MB.brl, 0], ['cpm', MB.brl, -1], ['ctr', MB.pct, 1], ['gancho', MB.pct, 1], ['video_medio', (v) => v == null ? '—' : v.toLocaleString('pt-BR', {maximumFractionDigits: 1}) + ' s', 1], ['freq', dec, 0], ['leads_meta', MB.int, 1], ['cpl', MB.brl, -1], ['taxa_aprov', MB.pct, 1], ['custo_aprov_est', MB.brl, -1], ['expos_camp', MB.int, 0], ['custo_expo_est', MB.brl, -1], ['cac_camp', MB.brl, -1]];
 dash.draw('comparativo', (tb) => {
   const d = dash.data('comparativo');
