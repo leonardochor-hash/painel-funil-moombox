@@ -266,13 +266,15 @@ dash.calc('conta', {
   }
 });
 dash.calc('criativos', {
-  inputs: ['ads_per', 'cri_per'],
-  fn: (ads, cri) => {
+  inputs: ['ads_per', 'cri_per', 'julia_leads'],
+  fn: (ads, cri, leads) => {
     const C = d3.rollup(cri, (v) => ({alcance: d3.sum(v, (r) => r.alcance), visitas: d3.sum(v, (r) => r.visitas), v3s: d3.sum(v, (r) => r.v3s), p25: d3.sum(v, (r) => r.p25), p50: d3.sum(v, (r) => r.p50), p75: d3.sum(v, (r) => r.p75), p100: d3.sum(v, (r) => r.p100), thruplay: d3.sum(v, (r) => r.thruplay)}), (r) => r.ad_id);
-    return d3.rollups(ads, (v) => ({anuncio: v[0].anuncio, conjunto: v[0].conjunto, conjunto_id: v[0].conjunto_id, perfil: v[0].perfil, gasto: d3.sum(v, (r) => r.gasto), impressoes: d3.sum(v, (r) => r.impressoes), cliques: d3.sum(v, (r) => r.cliques)}), (r) => r.ad_id)
+    return d3.rollups(ads, (v) => ({anuncio: v[0].anuncio, conjunto: v[0].conjunto, conjunto_id: v[0].conjunto_id, perfil: v[0].perfil, gasto: d3.sum(v, (r) => r.gasto), impressoes: d3.sum(v, (r) => r.impressoes), cliques: d3.sum(v, (r) => r.cliques), leads_meta: d3.sum(v, (r) => r.leads_meta)}), (r) => r.ad_id)
       .map(([id, o]) => { const c = C.get(id) || {}; const i = o.impressoes || 0; const q = (x) => i ? (x || 0) / i : null;
+        const l = (leads || []).filter((r) => r.ad_id === id || (!r.ad_id && r.utm_content && (r.utm_content === o.anuncio || r.utm_content === o.conjunto + '__' + o.anuncio))); const ap = l.filter((r) => r.aprov).length, ex = l.filter((r) => r.expo).length;
         return {chave: id, anuncio: o.anuncio, conjunto: o.conjunto, conjunto_id: o.conjunto_id, perfil: o.perfil, gasto: o.gasto, impressoes: i, cliques: o.cliques, visitas: c.visitas || 0, freq: c.alcance ? i / c.alcance : null, cpm: i ? o.gasto / i * 1000 : null, ctr: q(o.cliques),
-          gancho: q(c.v3s), p25: q(c.p25), p50: q(c.p50), p75: q(c.p75), p100: q(c.p100), thruplay: q(c.thruplay), chegada: o.cliques ? (c.visitas || 0) / o.cliques : null, custo_visita: c.visitas ? o.gasto / c.visitas : null}; })
+          gancho: q(c.v3s), p25: q(c.p25), p50: q(c.p50), p75: q(c.p75), p100: q(c.p100), thruplay: q(c.thruplay), chegada: o.cliques ? (c.visitas || 0) / o.cliques : null, custo_visita: c.visitas ? o.gasto / c.visitas : null,
+          leads: l.length, leads_meta: o.leads_meta, aprovados: ap, custo_aprov: ap ? o.gasto / ap : null, expositores: ex}; })
       .filter((r) => r.impressoes > 0).sort((a, b) => b.gasto - a.gasto);
   }
 });
