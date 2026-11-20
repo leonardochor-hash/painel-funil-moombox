@@ -91,7 +91,10 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 .mb .aviso{font-size:var(--cds-font-size-caption);border-left:3px solid var(--color-warn);padding:6px 10px;margin:0 0 var(--cds-gap-sm);color:var(--color-fg-muted)}
 .mb details{font-size:var(--cds-font-size-body)}
 .mb details li{margin-bottom:4px}
-.mb td.best{color:var(--color-ok);font-weight:600} .mb td.worst{color:var(--color-bad)}
+.mb td.best{font-weight:700} .mb td.worst{font-weight:400}
+.mb tr.linha-best>td{background:#d9f0e0;color:#111}
+.mb tr.linha-worst>td{background:#f9dcd7;color:#111}
+.mb tr.linha-best a,.mb tr.linha-worst a,.mb tr.linha-best .muted,.mb tr.linha-worst .muted{color:#111}
 .mb .fichas{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--cds-gap-sm);margin-top:var(--cds-gap-sm)}
 .mb .ficha{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md, 12px);display:grid;gap:8px;align-content:start;min-width:0}
 .mb .ficha h3{font-size:var(--cds-font-size-body);font-weight:var(--cds-font-weight-medium);margin:0;word-break:break-word}
@@ -254,7 +257,7 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
 
   <section class='card' id='comparativo-moombox'>
     <h2>Comparativo dos anúncios da Moombox — o que replicar</h2>
-    <p class='sub'>Anúncios da Moombox Ads com gasto nos últimos 14 dias (ativos agora ou até a semana passada); números no período do filtro. Verde = melhor da coluna, vermelho = pior (só entre anúncios com R$ 50+). Custo/aprov. estimado = investido ÷ (leads do Meta × % de aprovação da campanha no Airtable), porque o lead do formulário Meta chega sem o anúncio. Custo/expos. est. = investido ÷ (expositoras da campanha × participação do anúncio nos leads do Meta da campanha); Custo/expos. camp. = gasto total da campanha ÷ expositoras da campanha. “—” = nenhuma expositora ainda. Os anúncios mudam várias coisas ao mesmo tempo: use para levantar hipóteses e testar uma variável por vez.</p>
+    <p class='sub'>Anúncios da Moombox Ads com gasto nos últimos 14 dias (ativos agora ou até a semana passada); números no período do filtro. Linha verde = menor custo/aprov. estimado, linha vermelha = maior; em negrito o melhor de cada coluna (só entre anúncios com R$ 50+). Custo/aprov. estimado = investido ÷ (leads do Meta × % de aprovação da campanha no Airtable), porque o lead do formulário Meta chega sem o anúncio. Custo/expos. est. = investido ÷ (expositoras da campanha × participação do anúncio nos leads do Meta da campanha); Custo/expos. camp. = gasto total da campanha ÷ expositoras da campanha. “—” = nenhuma expositora ainda. Os anúncios mudam várias coisas ao mesmo tempo: use para levantar hipóteses e testar uma variável por vez.</p>
     <div class='tbl'><table>
       <thead><tr><th>Anúncio · público</th><th>Status</th><th>Destino</th><th>Investido</th><th>CPM</th><th>CTR</th><th>Gancho 3s</th><th>Vídeo médio</th><th>Freq.</th><th>Leads Meta</th><th>CPL Meta</th><th>% aprov. camp.</th><th>Custo/aprov. est.</th><th>Expos. camp.</th><th>Custo/expos. est.</th><th>Custo/expos. camp.</th><th>Onde mais gastou</th></tr></thead>
       <tbody data-draw='comparativo'></tbody>

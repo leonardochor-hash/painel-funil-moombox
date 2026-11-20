@@ -151,6 +151,7 @@ dash.draw('comparativo', (tb) => {
     const de = tr.insertCell(); de.className = 'wrap'; de.style.minWidth = '110px'; de.textContent = r.destino;
     COMP.forEach(([k, f, dir]) => { const td = tr.insertCell(); td.textContent = f(r[k]);
       if (dir && ext[k] && r.gasto >= 50 && r[k] != null && ext[k][0] !== ext[k][1]) { const best = dir > 0 ? ext[k][1] : ext[k][0], worst = dir > 0 ? ext[k][0] : ext[k][1]; if (r[k] === best) td.className = 'best'; else if (r[k] === worst) td.className = 'worst'; } });
+    const ca = ext.custo_aprov_est; if (ca && r.gasto >= 50 && r.custo_aprov_est != null && ca[0] !== ca[1]) { if (r.custo_aprov_est === ca[0]) tr.classList.add('linha-best'); else if (r.custo_aprov_est === ca[1]) tr.classList.add('linha-worst'); }
     tr.insertCell().textContent = r.melhor_posicao || '—'; });
 });
 dash.draw('fichas', (el) => {
