@@ -209,8 +209,8 @@ dash.calc('posicionamentos', {
 dash.calc('anuncios', {
   inputs: ['ads_per', 'julia_leads'],
   fn: (ads, leads) => d3.rollups(ads, (v) => ({gasto: d3.sum(v, (r) => r.gasto), cliques: d3.sum(v, (r) => r.cliques), leads_pixel: d3.sum(v, (r) => r.leads_pixel), anuncio: v[0].anuncio, conjunto: v[0].conjunto, conjunto_id: v[0].conjunto_id, perfil: v[0].perfil}), (r) => r.ad_id)
-    .map(([ad_id, o]) => { const l = leads.filter((r) => r.ad_id === ad_id || (!r.ad_id && r.utm_content && (r.utm_content === o.anuncio || r.utm_content === o.conjunto + '__' + o.anuncio))); const ap = l.filter((r) => r.aprov).length;
-      return {chave: ad_id, anuncio: o.anuncio, conjunto: o.conjunto, conjunto_id: o.conjunto_id, perfil: o.perfil, gasto: o.gasto, cliques: o.cliques, cpc: o.cliques ? o.gasto / o.cliques : null, leads: l.length, cpl: l.length ? o.gasto / l.length : null, aprovados: ap, custo_aprov: ap ? o.gasto / ap : null, leads_pixel: o.leads_pixel}; })
+    .map(([ad_id, o]) => { const l = leads.filter((r) => r.ad_id === ad_id || (!r.ad_id && r.utm_content && (r.utm_content === o.anuncio || r.utm_content === o.conjunto + '__' + o.anuncio))); const ap = l.filter((r) => r.aprov).length, ex = l.filter((r) => r.expo).length;
+      return {chave: ad_id, anuncio: o.anuncio, conjunto: o.conjunto, conjunto_id: o.conjunto_id, perfil: o.perfil, gasto: o.gasto, cliques: o.cliques, cpc: o.cliques ? o.gasto / o.cliques : null, leads: l.length, cpl: l.length ? o.gasto / l.length : null, aprovados: ap, custo_aprov: ap ? o.gasto / ap : null, expositores: ex, cac: ex ? o.gasto / ex : null, leads_pixel: o.leads_pixel}; })
     .filter((r) => r.gasto > 0).sort((a, b) => b.gasto - a.gasto)
 });
 dash.calc('publicos', {

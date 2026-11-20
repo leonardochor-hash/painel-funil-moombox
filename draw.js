@@ -79,7 +79,7 @@ tabela('posicionamentos', 'posicionamentos', [t(String, 'posicionamento'), t(MB.
 tabela('publicos', 'publicos', [(td, r) => { td.className = 'wrap'; td.append(MB.linkMeta(r.perfil, 'adsets', r.conjunto_id, MB.curto(r.conjunto), r.conjunto)); const s = document.createElement('div'); s.className = 'muted'; s.style.fontSize = 'var(--cds-font-size-caption)'; s.textContent = r.perfil === 'julia' ? 'Julia' : 'Moombox'; td.append(s); }, t(MB.brl, 'gasto'), t(MB.int, 'cliques'), t(MB.brl, 'cpc'), t(MB.int, 'leads'), t(MB.brl, 'cpl'), t(MB.int, 'aprovados'), t(MB.brl, 'custo_aprov'), t(MB.int, 'expositores'), t(MB.brl, 'cac')]);
 tabela('anuncios', 'anuncios', [
   MB.celAnuncio,
-  t(MB.brl, 'gasto'), t(MB.int, 'cliques'), t(MB.brl, 'cpc'), t(MB.int, 'leads'), t(MB.brl, 'cpl'), t(MB.int, 'aprovados'), t(MB.brl, 'custo_aprov'),
+  t(MB.brl, 'gasto'), t(MB.int, 'cliques'), t(MB.brl, 'cpc'), t(MB.int, 'leads'), t(MB.brl, 'cpl'), t(MB.int, 'aprovados'), t(MB.brl, 'custo_aprov'), (td, r) => { td.textContent = MB.int(r.expositores); if (r.expositores) td.style.fontWeight = '600'; }, t(MB.brl, 'cac'),
   (td, r) => { td.textContent = MB.int(r.leads_pixel); if (!r.leads_pixel) td.style.color = 'var(--color-warn)'; }]);
 tabela('safras', 'safras', [t(MB.mes, 'mes'), t(MB.int, 'leads'), t(MB.pct, 'taxa_aprov'), t(MB.int, 'oportunidades'), t(MB.int, 'expositores'), t(MB.pct, 'taxa_expo')]);
 tabela('rastreio', 'rastreio', [
