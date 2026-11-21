@@ -115,9 +115,11 @@ dash.draw('diario', (el) => {
   svg.append('g').attr('class', 'axis').attr('transform', `translate(${W - m.r},0)`).call(d3.axisRight(yG).ticks(4).tickSize(0).tickFormat((v) => 'R$' + v)).call((g) => g.select('.domain').remove());
   svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.dia)).attr('width', x.bandwidth()).attr('y', (r) => yL(r.leads)).attr('height', (r) => yL(0) - yL(r.leads)).attr('rx', 2).style('fill', dash.colors[0]);
   svg.append('path').datum(rows).attr('d', d3.line().x((r) => x(r.dia) + x.bandwidth() / 2).y((r) => yG(r.gasto))).style('fill', 'none').style('stroke', dash.colors[1]).style('stroke-width', 2);
+  if (x.bandwidth() >= 34) svg.append('g').selectAll('text').data(rows.filter((r) => r.gasto > 0)).join('text').attr('x', (r) => x(r.dia) + x.bandwidth() / 2).attr('y', (r) => Math.max(m.t + 9, yL(r.leads) - 4)).attr('text-anchor', 'middle')
+    .style('font-size', '10px').style('fill', 'var(--color-fg-muted)').text((r) => r.leads_pago ? MB.brl(r.gasto / r.leads_pago).replace(',00', '') : 'sem lead');
   const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; el.append(tip);
   svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.dia) - x.step() * x.padding() / 2).attr('width', x.step()).attr('y', m.t).attr('height', H - m.t - m.b).style('fill', 'transparent')
-    .on('pointerenter pointermove', (ev, r) => { tip.hidden = false; tip.textContent = `${MB.dm(r.dia)} · ${r.leads} leads · ${MB.brl(r.gasto)} gasto em anúncios`;
+    .on('pointerenter pointermove', (ev, r) => { tip.hidden = false; tip.textContent = `${MB.dm(r.dia)} · ${r.leads} leads (${r.leads_pago} de anúncio) · ${MB.brl(r.gasto)} gasto · custo por lead de anúncio ${r.leads_pago ? MB.brl(r.gasto / r.leads_pago) : '—'}`;
       const b = el.getBoundingClientRect(); let lx = ev.clientX - b.left + 10; if (lx > b.width - 200) lx = Math.max(0, lx - 220); tip.style.left = lx + 'px'; tip.style.top = (ev.clientY - b.top - 30) + 'px'; })
     .on('pointerleave', () => { tip.hidden = true; });
 });
@@ -249,3 +251,17 @@ dash.draw('f-regra', (el) => { el.textContent = dash.params().atrib === 'equipe'
     });
   });
 })();
+
+dash.draw('diario-resumo', (el) => {
+  const d = dash.data('diario'); if (d.status !== 'ok' || !d.data) { el.textContent = ''; return; }
+  const rows = d.data, g = d3.sum(rows, (r) => r.gasto), lp = d3.sum(rows, (r) => r.leads_pago), lt = d3.sum(rows, (r) => r.leads);
+  const dias = rows.filter((r) => r.gasto > 0), n = dias.length;
+  let corr = '';
+  if (n >= 7) {
+    const mx = d3.mean(dias, (r) => r.gasto), my = d3.mean(dias, (r) => r.leads_pago);
+    const sxy = d3.sum(dias, (r) => (r.gasto - mx) * (r.leads_pago - my)), sx = Math.sqrt(d3.sum(dias, (r) => (r.gasto - mx) ** 2)), sy = Math.sqrt(d3.sum(dias, (r) => (r.leads_pago - my) ** 2));
+    const rr = sx && sy ? sxy / (sx * sy) : null;
+    if (rr != null) { const f = Math.abs(rr) >= .7 ? 'forte' : Math.abs(rr) >= .4 ? 'moderada' : 'fraca'; corr = ` · Correlação gasto × leads de anúncio, dia a dia: <b>${rr.toLocaleString('pt-BR', {maximumFractionDigits: 2})}</b> (${f}${rr < 0 ? ', negativa' : ''})`; }
+  } else corr = ' · Correlação: escolha 7 dias ou mais';
+  el.innerHTML = `Custo por lead de anúncio no período: <b>${lp ? MB.brl(g / lp) : '—'}</b> (${MB.brl(g)} ÷ ${MB.int(lp)} leads de anúncio; ${MB.int(lt)} leads no total)` + corr;
+});

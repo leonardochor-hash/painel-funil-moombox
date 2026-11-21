@@ -191,8 +191,8 @@ dash.calc('diario', {
   inputs: ['base', 'ads_per', 'janela'],
   fn: (base, ads, janela) => {
     const j = janela[0], p = d3.timeParse('%Y-%m-%d'), f = d3.timeFormat('%Y-%m-%d');
-    const L = d3.rollup(base, (v) => v.length, (r) => r.dia), G = d3.rollup(ads, (v) => d3.sum(v, (r) => r.gasto), (r) => r.data);
-    return d3.timeDays(p(j.de), d3.timeDay.offset(p(j.ate), 1)).map((d) => ({dia: f(d), leads: L.get(f(d)) || 0, gasto: G.get(f(d)) || 0}));
+    const L = d3.rollup(base, (v) => v.length, (r) => r.dia), LP = d3.rollup(base.filter((r) => r.pago), (v) => v.length, (r) => r.dia), G = d3.rollup(ads, (v) => d3.sum(v, (r) => r.gasto), (r) => r.data);
+    return d3.timeDays(p(j.de), d3.timeDay.offset(p(j.ate), 1)).map((d) => ({dia: f(d), leads: L.get(f(d)) || 0, leads_pago: LP.get(f(d)) || 0, gasto: G.get(f(d)) || 0}));
   }
 });
 dash.calc('posicionamentos', {

@@ -226,7 +226,9 @@ body{margin:0;background:var(--color-bg);color:var(--color-fg)}
   <section class='card' id='por-dia'>
     <h2>Leads por dia × gasto em anúncios</h2>
     <div class='legend'><span><i id='lg-leads'></i>Leads no Airtable (filtro de perfil)</span><span><i id='lg-gasto'></i>Gasto Meta (R$, filtro de perfil)</span></div>
+    <p class='sub' data-draw='diario-resumo'></p>
     <div class='chartbox' data-draw='diario'></div>
+    <p class='sub'>Número acima da barra = gasto do dia ÷ leads de anúncio do dia (formulário Meta, LP, WhatsApp de anúncio, UTMs da Julia). Correlação: 1 = gasto e leads sobem e descem juntos; 0 = sem relação. O dia de hoje ainda está incompleto.</p>
   </section>
 
   <section class='card' id='por-posicionamento'>
