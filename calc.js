@@ -80,6 +80,7 @@ dash.calc('comparativo', {
     const P = d3.rollup(plac.filter(dentro), (v) => { const g = d3.rollups(v, (w) => d3.sum(w, (r) => r.gasto), (r) => pos(r.posicao)); const tot = d3.sum(g, (d) => d[1]); const b = d3.greatest(g, (d) => d[1]); return b && tot ? b[0] + ' (' + Math.round(b[1] / tot * 100) + '%)' : ''; }, (r) => r.ad_id);
     const T = d3.rollup(todos.filter((r) => r.perfil === 'moombox' && r.dia >= j.de && r.dia <= j.ate), (v) => ({n: v.length, ap: v.filter((r) => r.aprov).length, ex: v.filter((r) => r.expo).length}), (r) => norm(r.utm_campaign));
     const LC = d3.rollup(ads.filter((r) => r.perfil === 'moombox' && r.data >= j.de && r.data <= j.ate), (v) => ({leads: d3.sum(v, (r) => r.leads_meta), gasto: d3.sum(v, (r) => r.gasto)}), (r) => norm(r.campanha));
+    fichas = [...d3.group(fichas, (f) => f.ad_id).values()].map((v) => v.find((f) => f.status === 'Ativo') || v[0]); // o Windsor pode devolver mais de uma linha por anúncio
     return fichas.map((f) => { const a = A.get(f.ad_id) || {}, c = C.get(f.ad_id) || {}, t = T.get(norm(f.campanha)), lc = LC.get(norm(f.campanha)) || {};
       const g = a.gasto || 0, i = a.impressoes || 0, taxa = t && t.n >= 5 ? t.ap / t.n : null, aprov = a.leads_meta && taxa != null ? a.leads_meta * taxa : null;
       const expo_est = t && t.ex && lc.leads ? t.ex * (a.leads_meta || 0) / lc.leads : 0;
