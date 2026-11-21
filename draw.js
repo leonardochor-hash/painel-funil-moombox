@@ -231,3 +231,21 @@ dash.draw('travadas', (tb) => {
   if (l.length > 80) { const td = tb.insertRow().insertCell(); td.colSpan = 7; td.className = 'muted'; td.textContent = '+ ' + (l.length - 80) + ' leads paradas não mostradas.'; }
 });
 dash.draw('f-regra', (el) => { el.textContent = dash.params().atrib === 'equipe' ? 'todas com origem Meta, LP ou WhatsApp (inclui WhatsApp orgânico — mesma regra da visão Purchase do Airtable)' : 'só leads que vieram de anúncio (formulário Meta, LP, WhatsApp de anúncio, UTM ou fbclid)'; });
+
+// Período do filtro ao lado do título de cada painel (para não precisar voltar ao topo para ver o que está selecionado).
+(() => {
+  const SEM = /^(Saldo e ritmo de gasto|Ficha de cada anúncio)/; // painéis que não seguem o filtro de período
+  dash.onData(() => {
+    const j = dash.data('janela'), r = j.status === 'ok' && j.data && j.data[0];
+    if (!r) return;
+    const pf = dash.params().perfil || 'todos';
+    const txt = (r.dias === 1 ? MB.dm(r.de) : MB.dm(r.de) + ' a ' + MB.dm(r.ate)) + (pf === 'todos' ? '' : ' · ' + (pf === 'julia' ? 'Julia' : 'Moombox'));
+    document.querySelectorAll('.mb h2').forEach((h) => {
+      if (SEM.test(h.textContent)) return;
+      let c = h.querySelector('.per-chip');
+      if (!c) { c = document.createElement('span'); c.className = 'per-chip'; h.append(c); }
+      c.textContent = txt;
+      c.title = 'Período do filtro: ' + (r.dias === 1 ? MB.dm(r.de) : MB.dm(r.de) + ' a ' + MB.dm(r.ate) + ' (' + r.dias + ' dias)');
+    });
+  });
+})();
